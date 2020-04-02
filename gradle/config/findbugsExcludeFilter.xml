@@ -11,4 +11,20 @@
         <Class name="fr.lixbox.orm.hibernate.util.HibernateDetachUtil" />
         <Bug code="WMI" />
     </Match>
+    <Match>
+        <Class name="fr.lixbox.orm.redis.client.ExtendRedisClient" />
+        <Bug code="DE" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.orm.redis.client.ExtendRedisClient" />
+        <Bug code="REC" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.jee.redis.test.TestExtendRedisClient" />
+        <Bug code="DLS" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.jee.redis.test.TestRedisSearch" />
+        <Bug code="ST" />
+    </Match>
 </FindBugsFilter>

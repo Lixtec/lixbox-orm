@@ -30,7 +30,7 @@ import org.junit.Test;
 import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.DateUtil;
 import fr.lixbox.jee.redis.model.JNO;
-import fr.lixbox.orm.redis.util.ExtendRedisClient;
+import fr.lixbox.orm.redis.client.ExtendRedisClient;
 
 
 /**

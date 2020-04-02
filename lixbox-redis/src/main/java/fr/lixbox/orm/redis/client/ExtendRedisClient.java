@@ -13,7 +13,7 @@
  *   @AUTHOR Ludovic TERRAL
  *
  ********************************************************************************/
-package fr.lixbox.orm.redis.util;
+package fr.lixbox.orm.redis.client;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
