@@ -29,7 +29,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.lixbox.common.model.ConteneurEvenement;
 import fr.lixbox.common.model.Contexte;
 import fr.lixbox.io.json.JsonUtil;
-import fr.lixbox.jee.entity.model.Dao;
+import fr.lixbox.orm.entity.model.Dao;
+import fr.lixbox.orm.redis.model.RedisSearchDao;
 import io.redisearch.Schema;
 
 /**

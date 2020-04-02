@@ -4,11 +4,11 @@
         <Bug code="Se" />
     </Match>
     <Match>
-        <Class name="fr.lixbox.jee.hibernate.util.HibernateDetachUtil" />
+        <Class name="fr.lixbox.orm.hibernate.util.HibernateDetachUtil" />
         <Bug code="NP" />
     </Match>
     <Match>
-        <Class name="fr.lixbox.jee.hibernate.util.HibernateDetachUtil" />
+        <Class name="fr.lixbox.orm.hibernate.util.HibernateDetachUtil" />
         <Bug code="WMI" />
     </Match>
 </FindBugsFilter>
