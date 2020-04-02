@@ -1,0 +1,32 @@
+project(':lixbox-entity'){    
+	dependencies {
+        //lixbox
+		compile(group: 'fr.lixbox.lixbox-common', name: 'lixbox-core', version: version_lixbox_common)
+
+
+        //divers        
+        compileOnly group: 'org.hibernate.validator', name: 'hibernate-validator', version: '6.0.13.Final'
+
+
+        // ================================ Test ================================
+		testCompile 'junit:junit:4.12'
+	}
+    
+    eclipse{
+        wtp{
+            facet {
+                facet name: 'jst.cdi', version: '2.0'
+                facet name: 'jst.utility', version: '1.0'
+            }
+        }
+    }
+	
+	sonarqube {
+		properties {
+           property "sonar.projectKey", "${config.desc_project.artefact.group}.${rootProject.name}:${project.name}"
+           property "sonar.projectName", "${project.name}"
+		   property "sonar.sources","src/main"
+		   property "sonar.tests","src/test"
+        }
+	}	
+}

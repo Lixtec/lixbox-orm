@@ -1,0 +1,450 @@
+// Initialisation des plugins
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2"
+        }
+        maven {
+            url "https://repos.service.lixtec.fr/artifactory/libs-release"
+		    credentials{
+		    	username="lixbox.jenkins.bot"
+		    	password=".TL1b0sc!"
+	    	}
+        }
+    }
+    dependencies {
+        classpath (group: 'fr.lixbox', name: 'lixbox-gradle-plugins', version: '1.0.0.4')
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7.1"
+        classpath 'gradle.plugin.com.github.jk1:gradle-license-report:1.3'
+        classpath 'org.owasp:dependency-check-gradle:5.3.2'
+        classpath 'org.postgresql:postgresql:42.2.5'
+        classpath 'org.hidetake:gradle-ssh-plugin:2.10.1'
+        classpath('com.google.guava:guava:28.0-jre')
+    }
+}
+plugins {
+    id "org.ajoberstar.grgit" version "3.1.1"
+    id "com.github.spotbugs" version "3.0.0"
+    id 'maven-publish'
+}
+
+//Global configuration
+apply plugin: "org.sonarqube"
+apply plugin: 'org.hidetake.ssh'
+apply plugin: 'fr.lixbox.gradle.plugins'
+
+ext.env = project.hasProperty("env") ? project.getProperty("env") : "local"
+println "Loading configuration for environment '$ext.env'...."
+def configFile = file("$rootDir/gradle/config/environment.groovy")
+def parsedConfig = new ConfigSlurper(ext.env).parse(configFile.toURL())
+def configDir = new File(rootDir, '/config/checkstyle/checkstyle.xml')
+ext.config = parsedConfig
+group = "${config.desc_project.artefact.group}"
+ext.buildTimestamp = new Date().format('yyyy-MM-dd HH:mm:ss')
+ext.jarReposUrl = "$config.artifactoryRepository.contextUrl/$config.artifactoryRepository.libsRelease.name"
+def fix_version = new fr.lixbox.gradle.project.ProjectVersion(
+    config.desc_project.version.majorVersion,
+    config.desc_project.version.mediumVersion,
+    config.desc_project.version.minorVersion,
+    System.env.SOURCE_BUILD_NUMBER
+    ).toString()
+def releasesRepoUrl = "$config.artifactoryRepository.contextUrl/$config.artifactoryRepository.lixboxRelease.name"
+def snapshotsRepoUrl = "$config.artifactoryRepository.contextUrl/$config.artifactoryRepository.lixboxSnapshot.name"
+def maven_url = ext.env.equals('prod') ? releasesRepoUrl:snapshotsRepoUrl
+
+if (config.desc_project.projectSite)
+{
+    apply from: 'gradle/project-site.gradle'  
+}
+if (config.desc_project.withRegistry)
+{
+    apply from: 'gradle/with-registry.gradle'  
+}
+if (config.desc_project.withDocker)
+{
+    apply from: 'gradle/with-docker.gradle'  
+}
+if (config.desc_project.withQuarkus)
+{
+    apply from: 'gradle/with-quarkus.gradle'  
+}
+
+import org.ajoberstar.grgit.Credentials
+import  org.ajoberstar.grgit.Person
+import  org.apache.commons.io.IOUtils
+import groovy.io.FileType
+
+sonarqube  {
+    properties {
+        property "sonar.sourceEncoding","UTF-8"
+        property "sonar.verbose", "true"
+        property "sonar.projectName", "${config.desc_project.artefact.project}"
+        property "sonar.projectKey", "${config.desc_project.artefact.projectKey}"
+        property "sonar.host.url", "${config.sonarRepository.host.url}"
+        property "sonar.login", "${config.sonarRepository.host.username}"
+        property "sonar.password", "${config.sonarRepository.host.password}"
+    }
+}
+
+remotes {
+  projectsite {
+    host = "${config.desc_project.pic.projectsite.management.host}"
+    port = 60022
+    user = "${config.desc_project.pic.projectsite.management.username}"
+    password = "${config.desc_project.pic.projectsite.management.password}"
+    knownHosts = allowAnyHosts
+  }
+}
+
+allprojects { 
+    apply plugin:'base'
+    group = "$config.desc_project.artefact.group"    
+    version=fix_version
+    repositories{
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven{
+            url jarReposUrl
+            credentials{
+                username = "$config.artifactoryRepository.username"
+                password = "$config.artifactoryRepository.password"
+            }
+        }
+    }       
+    task cleanDownloadDir(type: Delete) { delete "$buildDir/download" }
+}
+
+
+
+task tagRelease() {
+    doLast {
+        def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+        def tagger = new Person(name:"jenkins", email:"lixbox-jenkins-bot@lixtec.fr")
+        grgit.tag.add{
+            name="$project.version"
+            message="Release of $project.version"
+            force=true
+            tagger=tagger
+        }
+        grgit.push(tags:true)
+        println("VERSION $project.version IS TAGGED AND RELEASED")
+    }
+}
+
+
+    
+sonarQuality{
+    projectKey "${config.desc_project.artefact.projectKey}"
+    sonarUrl "${config.sonarRepository.host.url}"
+    utilisateur "${config.sonarRepository.host.username}"
+    password "${config.sonarRepository.host.password}"
+    waitingTime 10000
+}
+
+
+subprojects {
+	//Plugins	
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: "com.github.spotbugs"
+    apply plugin: 'eclipse-wtp'
+    apply plugin: 'com.github.jk1.dependency-license-report'
+    apply plugin: 'org.owasp.dependencycheck'
+    apply plugin: 'maven-publish'
+
+    repositories {
+            maven {
+                url = "$config.artifactoryRepository.contextUrl/$config.artifactoryRepository.lixboxSnapshot.name"
+                credentials{
+                    username = "$config.artifactoryRepository.username"
+                    password = "$config.artifactoryRepository.password"
+                }
+            }
+            maven {
+                url = "$config.artifactoryRepository.contextUrl/$config.artifactoryRepository.lixboxRelease.name"
+                credentials{
+                    username = "$config.artifactoryRepository.username"
+                    password = "$config.artifactoryRepository.password"
+                }
+            }
+    }
+        
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+            }
+        }
+        repositories {
+            mavenLocal()
+            maven {
+                url maven_url
+                credentials{
+                    username = "$config.artifactoryRepository.username"
+                    password = "$config.artifactoryRepository.password"
+                }
+            }
+        }
+    }
+    
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    compileJava.options.encoding = 'UTF-8'
+    
+    
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+    tasks.withType(Test) {
+        systemProperty "file.encoding", "utf-8"
+    }
+    
+    eclipseWtp.doLast{
+        File f = file('.settings/org.eclipse.core.resources.prefs')
+        f.write('eclipse.preferences.version=1\n')
+        f.append('encoding/<project>=UTF-8')
+    }
+    
+    eclipse {
+        project {
+            natures 'org.eclipse.buildship.core.gradleprojectnature'
+            buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+        }
+        classpath.file {
+            beforeMerged { classpath ->
+                classpath.entries.clear()
+            }
+        }
+        classpath {
+            defaultOutputDir = file('bin/main')
+            file.withXml { n ->
+                n.asNode().classpathentry.findAll { it.@path.contains('est') }
+                        .each { it.@output = 'bin/test' }
+            }
+            file.withXml { n ->
+                n.asNode().classpathentry.findAll { it.@path.contains('webapp') }
+                        .each { it.@output = 'bin/webapp' }
+            }
+            file.withXml {n -> 
+                n.asNode().classpathentry.findAll{it.@path.contains('est') }
+                        .each{it.appendNode('attributes')
+                            .appendNode('attribute',[name: 'org.eclipse.jst.component.nondependency',value: ''])}
+            }
+            file.whenMerged {
+                entries.each {
+                    source ->
+                        // This seems kludgy.  If the second test is omitted, it fails processing a 'Project Dependency' entry
+                        if (source.kind == 'src' && source.toString().contains('output') && source.output.contains('bin/main_')) {
+                            source.output = 'bin/main'
+                        }
+                }
+            }
+        }
+        eclipse.wtp.component.file {
+            beforeMerged { wtpComponent ->
+                wtpComponent.wbModuleEntries.clear()
+            }
+        }
+        wtp.component{
+              minusConfigurations << configurations.compileOnly
+        }
+    }
+		
+	sourceSets {
+	  integrationTest {
+	    java{
+          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+          runtimeClasspath = output + compileClasspath
+	    }
+	  }  
+	  acceptanceTest {
+        java{
+  		  compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+		  runtimeClasspath = output + compileClasspath
+		}
+	  }	  
+	  smokeTest {
+        java{
+          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+          runtimeClasspath = output + compileClasspath
+        }
+	  }  
+	  loadTest {
+        java{
+          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+          runtimeClasspath = output + compileClasspath
+        }
+	  }
+      uiTest {
+        java.srcDir file("src/uiTest/java")
+        resources.srcDir file("src/uiTest/resources")
+        compileClasspath = sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath = output + compileClasspath
+      }
+      wsTest {
+        java{
+          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
+          runtimeClasspath = output + compileClasspath
+        }
+      }
+	}
+	
+	task integrationTest(type: Test){
+		description = 'Runs the integration tests.'
+		group = 'verification'
+		testClassesDirs = sourceSets.integrationTest.output.classesDirs
+		classpath = sourceSets.integrationTest.runtimeClasspath
+		reports.junitXml.destination = file("$buildDir/integrationTest-results")
+		reports.html.destination = file("$buildDir/reports/integrationTest")
+		forkEvery 1
+		beforeTest { descr ->
+			logger.warn("Starting IntegrationTest ${descr.className} : ${descr.name}")
+		}
+	}
+	check.dependsOn integrationTest
+	
+	task acceptanceTest(type: Test){
+		description = 'Runs the acceptance tests.'
+		group = 'verification'
+		testClassesDirs = sourceSets.acceptanceTest.output.classesDirs
+		classpath = sourceSets.acceptanceTest.runtimeClasspath
+		reports.junitXml.destination = file("$buildDir/acceptanceTest-results")
+		reports.html.destination = file("$buildDir/reports/acceptanceTest")
+		systemProperty 'selenium.host', config.server.hostname
+		systemProperty 'selenium.officialVersion', project.version.toString()
+		forkEvery 1
+		testLogging.showStandardStreams = true
+		beforeTest { 
+			descr -> logger.warn("Starting AcceptanceTest ${descr.className} : ${descr.name}")
+		}
+	}
+
+	task smokeTest(type: Test){
+		description = 'Runs a smoke test that checks if version is deployed to environment'
+		group = 'verification'
+		testClassesDirs = sourceSets.smokeTest.output.classesDirs
+		classpath = sourceSets.smokeTest.runtimeClasspath
+		reports.junitXml.destination = file("$buildDir/smokeTest-results")
+		reports.html.destination = file("$buildDir/reports/smokeTest")
+		forkEvery 1
+		testLogging.showStandardStreams = true
+		beforeTest { descr ->
+			logger.warn("Starting SmokeTest ${descr.className} : ${descr.name}")
+		}
+	}
+
+    task uiTest(type: Test){
+        description = 'Runs a ui test that checks if version is deployed to environment'
+        group = 'verification'
+        testClassesDirs = sourceSets.uiTest.output.classesDirs
+        classpath = sourceSets.uiTest.runtimeClasspath
+        reports.junitXml.destination = file("$buildDir/uiTest-results")
+        reports.html.destination = file("$buildDir/reports/uiTest")
+        forkEvery 1
+        testLogging.showStandardStreams = true
+        beforeTest { descr ->
+            logger.warn("Starting UiTest ${descr.className} : ${descr.name}")
+        }
+    }
+
+    task wsTest(type: Test){
+        description = 'Runs a ws test that checks if version is deployed to environment'
+        group = 'verification'
+        testClassesDirs = sourceSets.wsTest.output.classesDirs
+        classpath = sourceSets.wsTest.runtimeClasspath
+        reports.junitXml.destination = file("$buildDir/wsTest-results")
+        reports.html.destination = file("$buildDir/reports/wsTest")
+        forkEvery 1
+        testLogging.showStandardStreams = true
+        beforeTest { descr ->
+            logger.warn("Starting WSTest ${descr.className} : ${descr.name}")
+        }
+    }
+   
+    jacoco{
+        toolVersion = "0.8.2"
+    }
+    
+    jacocoTestReport {
+        reports {
+            xml.enabled false
+            csv.enabled false
+            html.destination file("${buildDir}/reports/jacoco")
+        }
+    }
+
+    spotbugs {
+        toolVersion = '3.1.12'
+        effort = 'max'
+        excludeFilter file('../gradle/config/findbugsExcludeFilter.xml')
+    }
+    tasks.withType(com.github.spotbugs.SpotBugsTask) {
+        reports {
+            xml.enabled false
+            html.enabled true
+        }
+    }
+  
+    
+    jar{
+        manifest {
+            attributes("Implementation-Title": "${config.desc_project.artefact.group}.${rootProject.name}:${project.name}",
+                       "Implementation-Version": version)
+        }
+    }   
+    
+    
+	test{
+		forkEvery 1
+		beforeTest { descr ->
+			logger.warn("Starting Test ${descr.className} : ${descr.name}")
+		}
+        ignoreFailures = false        
+	} 
+    test.finalizedBy(jacocoTestReport);
+
+		    
+	//Couverture de code {jacoco}
+	task jacocoIntegrationTestReport(type:JacocoReport){
+		sourceSets sourceSets.main
+		executionData integrationTest
+	}
+    
+    
+    //Analyse des vulnérabilités
+    dependencyCheck {
+        data {
+            driver="org.postgresql.Driver"
+            connectionString="jdbc:postgresql://owasp.service.lixtec.fr:54320/owasp"
+            username="owasp"
+            password="MyOwaspDbPwdSecurity!"
+        }
+        analyzers{
+            centralEnabled=false
+            retirejs{enabled=false}
+        }
+        failBuildOnCVSS=0
+        suppressionFile = "$rootDir/gradle/config/owasp-suppressions.xml"        
+        autoUpdate=false;
+        outputDirectory="$projectDir/build/reports/dependency-check";
+    }
+    
+    
+    //Modification des worflows de taches
+    if("prod".equals(project.getProperty("env"))) {
+        tasks.publish.finalizedBy(tagRelease);
+    }
+    
+    tasks.eclipse.dependsOn tasks.cleanEclipse    
+    tasks.check.dependsOn(tasks.generateLicenseReport);
+    tasks.check.dependsOn(tasks.dependencyCheckAnalyze);
+}

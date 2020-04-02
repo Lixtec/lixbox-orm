@@ -1,0 +1,34 @@
+project(':lixbox-redis'){    
+	dependencies {
+        //lixbox
+        compile project(":lixbox-entity")
+        compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
+        
+        
+        //redis
+        implementation group: 'redis.clients', name: 'jedis', version: '3.2.0'
+        implementation group: 'com.redislabs', name: 'jredisearch', version: '1.3.0'
+
+
+        // ================================ Test ================================
+		testCompile 'junit:junit:4.12'
+	}
+    
+    eclipse{
+        wtp{
+            facet {
+                facet name: 'jst.cdi', version: '2.0'
+                facet name: 'jst.utility', version: '1.0'
+            }
+        }
+    }
+	
+	sonarqube {
+		properties {
+           property "sonar.projectKey", "${config.desc_project.artefact.group}.${rootProject.name}:${project.name}"
+           property "sonar.projectName", "${project.name}"
+		   property "sonar.sources","src/main"
+		   property "sonar.tests","src/test"
+        }
+	}	
+}

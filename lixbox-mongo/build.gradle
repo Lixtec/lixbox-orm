@@ -1,0 +1,32 @@
+project(':lixbox-mongo'){    
+	dependencies {
+        //lixbox
+        compile project(":lixbox-entity")
+        compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
+        
+        //divers        
+		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
+
+
+        // ================================ Test ================================
+		testCompile 'junit:junit:4.12'
+	}
+    
+    eclipse{
+        wtp{
+            facet {
+                facet name: 'jst.cdi', version: '2.0'
+                facet name: 'jst.utility', version: '1.0'
+            }
+        }
+    }
+	
+	sonarqube {
+		properties {
+           property "sonar.projectKey", "${config.desc_project.artefact.group}.${rootProject.name}:${project.name}"
+           property "sonar.projectName", "${project.name}"
+		   property "sonar.sources","src/main"
+		   property "sonar.tests","src/test"
+        }
+	}	
+}

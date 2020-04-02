@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<FindBugsFilter>
+    <Match>
+        <Bug code="Se" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.jee.hibernate.util.HibernateDetachUtil" />
+        <Bug code="NP" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.jee.hibernate.util.HibernateDetachUtil" />
+        <Bug code="WMI" />
+    </Match>
+</FindBugsFilter>
