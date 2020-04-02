@@ -1,3 +1,8 @@
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+plugins {
+    id 'com.bmuschko.docker-remote-api' version '6.1.3'
+}
 project(':lixbox-redis'){    
 	dependencies {
         //lixbox
@@ -32,4 +37,37 @@ project(':lixbox-redis'){
 		   property "sonar.tests","src/test"
         }
 	}	
+
+    //initialisation du conteneur REDIS pour les tests
+    task pullRedisImage(type: DockerPullImage, description: "Pull redis image"){
+       image='redislabs/redisearch:latest'
+    }
+    task removeRedisContainer(type: DockerRemoveContainer, description: "Remove redis container"){
+        targetContainerId 'lixbox_redis_test'
+        onError { exception ->
+            if (!(exception.message.contains('No such container')||exception.message.contains('is already in progress')))
+                throw exception
+        }
+    }
+    task createRedisContainer(type: DockerCreateContainer, description: "Create a redis container for test") {
+        targetImageId 'redislabs/redisearch:latest'
+        containerName = 'lixbox_redis_test'
+        hostConfig.autoRemove = true
+        hostConfig.portBindings = ['6380:6379']
+    }
+    task startRedisContainer(type: DockerStartContainer, group: "docker", description: "start redis container") {
+        targetContainerId "lixbox_redis_test"
+    }   
+    task stopRedisContainer(type: DockerStopContainer, group: "docker", description: "stop redis container") {
+        targetContainerId "lixbox_redis_test"        
+        onError { exception ->
+            if (!exception.message.contains('No such container'))
+                throw exception
+        }
+    }
+    tasks.clean.dependsOn(tasks.pullRedisImage);
+    tasks.createRedisContainer.dependsOn(tasks.removeRedisContainer);
+    tasks.removeRedisContainer.dependsOn(tasks.stopRedisContainer);
+    tasks.startRedisContainer.dependsOn(tasks.createRedisContainer);
+    tasks.test.dependsOn(tasks.startRedisContainer);
 }

@@ -1,7 +1,7 @@
 desc_project{
     type="library"
     projectSite=false
-    withDocker=false
+    withDocker=true
     withRegistry=false
     withQuarkus=false
     version{
