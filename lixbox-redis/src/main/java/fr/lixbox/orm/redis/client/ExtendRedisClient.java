@@ -55,8 +55,8 @@ public class ExtendRedisClient implements Serializable
     private static final long serialVersionUID = -3968936170594429132L;
     private static final Log LOG = LogFactory.getLog(ExtendRedisClient.class);
     
-    private Jedis redisClient;
-    private Map<String, Client> searchClients;
+    private transient Jedis redisClient;
+    private transient Map<String, Client> searchClients;
     private String host;    
     private int port;
     
@@ -382,7 +382,7 @@ public class ExtendRedisClient implements Serializable
     public <T extends RedisSearchDao> T merge(T object)
     {
         open();
-        object = mergeNoManaged(object);
+        mergeNoManaged(object);
         close();
         return object;
     }
@@ -398,7 +398,7 @@ public class ExtendRedisClient implements Serializable
         open();
         for (T object : objects)
         {
-            object = mergeNoManaged(object);
+            mergeNoManaged(object);
         }
         return objects;
     }
@@ -529,8 +529,7 @@ public class ExtendRedisClient implements Serializable
         return new TypeReference<T>(){
             @Override
             public Type getType() {
-                Type type = classz;
-                return type;
+            	return classz;
             }
         };
     }
