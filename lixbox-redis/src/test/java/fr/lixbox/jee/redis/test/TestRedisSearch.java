@@ -44,7 +44,7 @@ public class TestRedisSearch
     @Before
     public void prepare()
     {
-        redisSearchClient = new io.redisearch.client.Client(JNO.class.getSimpleName(), "localhost", 6380);
+        redisSearchClient = new io.redisearch.client.Client(JNO.class.getSimpleName(), "main.host", 6380);
         JNO jno = new JNO();
         Assert.assertTrue("Impossible de créer le schéma dans redissearch", redisSearchClient.createIndex(jno.getIndexSchema(), IndexOptions.defaultOptions()));
     }
