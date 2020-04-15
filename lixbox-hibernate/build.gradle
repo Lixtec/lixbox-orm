@@ -13,6 +13,16 @@ project(':lixbox-hibernate'){
         testCompile (group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '2.3.3')
 	}
     
+    jar{
+       manifest {
+            attributes(
+                "Implementation-Title": project.name, 
+                "Implementation-Version": archiveVersion, 
+                "Implementation-Timestamp": new Date()
+            )
+        }
+    }
+    
     eclipse{
         wtp{
             facet {

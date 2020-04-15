@@ -12,6 +12,16 @@ project(':lixbox-entity'){
 		testCompile 'junit:junit:4.12'
 	}
     
+    jar{
+       manifest {
+            attributes(
+                "Implementation-Title": project.name, 
+                "Implementation-Version": archiveVersion, 
+                "Implementation-Timestamp": new Date()
+            )
+        }
+    }
+    
     eclipse{
         wtp{
             facet {
