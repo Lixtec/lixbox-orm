@@ -425,7 +425,6 @@ public class ExtendRedisClient implements Serializable
     
     
     
-    @SuppressWarnings("unchecked")
     public <T extends RedisSearchDao> T findById(Class<T> entityClass, String id) 
         throws BusinessException
     {
@@ -436,7 +435,7 @@ public class ExtendRedisClient implements Serializable
             open();
             tmp.setOid(id);
             String json = redisClient.get(tmp.getKey());
-            result = (T) JsonUtil.transformJsonToObject(json, getTypeReferenceFromClass(entityClass));
+            result = JsonUtil.transformJsonToObject(json, getTypeReferenceFromClass(entityClass));
         }
         catch (Exception e)
         {
