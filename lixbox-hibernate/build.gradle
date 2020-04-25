@@ -6,7 +6,8 @@ project(':lixbox-hibernate'){
 
         //divers        
         compileOnly (group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '2.3.3')
-        compileOnly (group: 'org.hibernate', name: 'hibernate-core', version: '5.4.1.Final')
+        compileOnly (group: 'org.hibernate', name: 'hibernate-core', version: version_hibernate)
+        
 
         // ================================ Test ================================
 		testCompile 'junit:junit:4.12'

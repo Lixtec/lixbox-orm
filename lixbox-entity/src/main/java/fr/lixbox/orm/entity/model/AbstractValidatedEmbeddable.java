@@ -23,8 +23,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
-import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
-import org.hibernate.validator.resourceloading.PlatformResourceBundleLocator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
 import fr.lixbox.common.model.ConteneurEvenement;
 import fr.lixbox.common.model.Contexte;
@@ -38,9 +37,12 @@ public abstract class AbstractValidatedEmbeddable implements ExtendEmbeddable
 {
     // ----------- Attribut(s) -----------
     private static final long serialVersionUID = 5806736426434897771L;
-	private static final Validator validator = Validation.byDefaultProvider().configure()
-			.messageInterpolator(new ResourceBundleMessageInterpolator(new PlatformResourceBundleLocator("MessagesValidator")))
-			.buildValidatorFactory().getValidator();
+    private static final Validator VALIDATOR =
+            Validation.byDefaultProvider()
+              .configure()
+              .messageInterpolator(new ParameterMessageInterpolator())
+              .buildValidatorFactory()
+              .getValidator();
 
 
 
