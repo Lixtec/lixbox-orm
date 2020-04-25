@@ -58,7 +58,7 @@ public abstract class AbstractValidatedEmbeddable implements ExtendEmbeddable
 	@Override
 	public ConteneurEvenement validate(final String parent, final Contexte contexte)
 	{
-		Set<ConstraintViolation<AbstractValidatedEmbeddable>> constraintViolations = validator.validate(this);
+		Set<ConstraintViolation<AbstractValidatedEmbeddable>> constraintViolations = VALIDATOR.validate(this);
 		ConteneurEvenement conteneur = new ConteneurEvenement();
 		Iterator<ConstraintViolation<AbstractValidatedEmbeddable>> iterator = constraintViolations.iterator();
 		while (iterator.hasNext()) {

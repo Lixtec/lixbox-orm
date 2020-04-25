@@ -59,7 +59,7 @@ public abstract class AbstractValidatedEntity implements Dao
 	@Override
 	public ConteneurEvenement validate(final String parent, final Contexte contexte) throws BusinessException
 	{
-		Set<ConstraintViolation<AbstractValidatedEntity>> constraintViolations = validator.validate(this);
+		Set<ConstraintViolation<AbstractValidatedEntity>> constraintViolations = VALIDATOR.validate(this);
 		ConteneurEvenement conteneur = new ConteneurEvenement();
 		Iterator<ConstraintViolation<AbstractValidatedEntity>> iterator = constraintViolations.iterator();
 		while (iterator.hasNext()) {
