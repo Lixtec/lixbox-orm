@@ -1,6 +1,6 @@
 BUILD_STATUS = 'success';
 projectSiteUri = 'https://project-site.service.lixtec.fr/lixbox-orm';
-gitUri = 'https://github.com/lixbox-team/lixbox-orm.git';
+gitUri = 'https://scm.service.dev.lan/lixbox/lixbox-orm.git';
 mattermostUri = 'https://team.service.lixtec.fr/hooks/xwqzwmg7zpf18kkdxm3tqw1kqh';
 channel = 'lixbox';
 branchName = 'jdk-8'
@@ -26,7 +26,7 @@ node('slave-gradle-jdk8') {
         try
         {
             deleteDir()
-            git credentialsId: '2a48fbab-f642-4bc5-98f1-0c7166aacd1b', url: gitUri, branch: branchName
+            git credentialsId: '8c9e4cf3-1cdf-4de8-9a15-94117eb09ff0', url: gitUri, branch: branchName
             sh 'chmod -R 755 ${WORKSPACE}'
             sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew clean --stacktrace'            
         }
@@ -56,7 +56,7 @@ node('slave-gradle-jdk8') {
         echo 'Distribution for test started'
         retry(2){ 
             try{
-                withCredentials([usernamePassword(credentialsId: '2a48fbab-f642-4bc5-98f1-0c7166aacd1b', usernameVariable: 'JENKINS_USR', passwordVariable: 'JENKINS_PWD')]) {
+                withCredentials([usernamePassword(credentialsId: '8c9e4cf3-1cdf-4de8-9a15-94117eb09ff0', usernameVariable: 'JENKINS_USR', passwordVariable: 'JENKINS_PWD')]) {
                     sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew -Dorg.ajoberstar.grgit.auth.username=${JENKINS_USR} -Dorg.ajoberstar.grgit.auth.password=${JENKINS_PWD} --stacktrace publish'
                 }            
             }
@@ -99,7 +99,7 @@ node('slave-gradle-jdk8') {
         echo 'Distribution for production started'
         retry(2){ 
             try{
-                withCredentials([usernamePassword(credentialsId: '2a48fbab-f642-4bc5-98f1-0c7166aacd1b', usernameVariable: 'JENKINS_USR', passwordVariable: 'JENKINS_PWD')]) {
+                withCredentials([usernamePassword(credentialsId: '8c9e4cf3-1cdf-4de8-9a15-94117eb09ff0', usernameVariable: 'JENKINS_USR', passwordVariable: 'JENKINS_PWD')]) {
                     sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew -Dorg.ajoberstar.grgit.auth.username=${JENKINS_USR} -Dorg.ajoberstar.grgit.auth.password=${JENKINS_PWD} -Penv=prod --stacktrace publish'
                 }
                 if(!currentBuild.result)

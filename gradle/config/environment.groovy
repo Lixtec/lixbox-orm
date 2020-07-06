@@ -23,19 +23,19 @@ desc_project{
 	pic{
 	    channel="lixbox"
 		git{
-    	    uri="https://scm.service.lixtec.fr/${channel}/${desc_project.artefact.project}.git"
+    	    uri="https://scm.service.dev.lan/${channel}/${desc_project.artefact.project}.git"
     	}    	
         jenkins{
-            uri="https://ci.service.lixtec.fr/view/${channel}/job/${desc_project.artefact.project}-pipeline"
+            uri="https://ci.service.dev.lan/view/${channel}/job/${desc_project.artefact.project}-pipeline"
         }   
         sonar{
-            uri="https://quality.service.lixtec.fr/dashboard?id=${desc_project.artefact.group}%3A${desc_project.artefact.project}"
+            uri="https://quality.service.dev.lan/dashboard?id=${desc_project.artefact.group}%3A${desc_project.artefact.project}"
         }
     }
 }
 
 artifactoryRepository{
-	contextUrl="https://repos.service.lixtec.fr/artifactory"
+	contextUrl="https://repos.service.dev.lan/artifactory"
     username="lixbox.jenkins.bot"
     password=".TL1b0sc!"
 	lixboxRelease	{	
@@ -51,7 +51,7 @@ artifactoryRepository{
 
 sonarRepository{
 	host{
-		url="https://quality.service.lixtec.fr"
+		url="https://quality.service.dev.lan"
         username="lixbox.sonar.bot"
         password="@L1xb0x!"
 	}
