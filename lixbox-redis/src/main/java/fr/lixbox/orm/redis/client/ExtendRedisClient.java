@@ -71,9 +71,6 @@ public class ExtendRedisClient implements Serializable
     
     /**
      * Ce constructeur sert à l'initialisation de l'acces a la base.
-     * L'uri est de la forme "mongodb://user1:pwd1@host1/?authSource=db1&ssl=true"
-     * 
-     * @param uri
      */
     public ExtendRedisClient(String host, int port) 
     {        
@@ -122,6 +119,13 @@ public class ExtendRedisClient implements Serializable
             }
             searchClients.clear();
         }
+    }
+    
+    
+    
+    public <T extends RedisSearchDao> boolean createSchema(T objet)
+    {
+        return getSearchClient(objet)!=null;
     }
     
     
