@@ -32,7 +32,6 @@ import java.util.UUID;
 import javax.persistence.Id;
 
 import org.hibernate.HibernateException;
-import org.hibernate.MappingException;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.dialect.Dialect;
@@ -79,7 +78,7 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
 
         
     
-    public void configure(Type type, Properties params, Dialect d) throws MappingException
+    public void configure(Type type, Properties params, Dialect d)
     {
         // check first for the strategy instance
         strategy = (UUIDGenerationStrategy) params.get(UUID_GEN_STRATEGY);
@@ -132,7 +131,6 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
         
 
 
-    @Override
     public void configure(Type type, Properties params, ServiceRegistry serviceRegistry)
     {
         // check first for the strategy instance
@@ -187,21 +185,21 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
 
     
 
-    public Serializable generate(SessionImplementor session, Object object) throws HibernateException
+    public Serializable generate(SessionImplementor session, Object object)
     {
         Serializable result = null;
         for (Field field: object.getClass().getFields())
         {
             Id id = field.getAnnotation(Id.class);
-            if (field != null && id!=null)
+            if (id!=null)
             {
                 try
                 {
-                    result = (Serializable) field.get(new String());
+                    result = (Serializable) field.get("");
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    LOG.debug(e);
                 }
             }            
         }        
@@ -209,7 +207,7 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
         for (Method field: object.getClass().getMethods())
         {
             Id id = field.getAnnotation(Id.class);
-            if (field != null && id!=null)
+            if (id!=null)
             {
                 try
                 {
@@ -217,11 +215,11 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    LOG.debug(e);
                 }
             }            
         }
-        if (result == null || (result!=null && result instanceof String && StringUtil.isEmpty((String) result)))
+        if (result instanceof String && StringUtil.isEmpty((String) result))
         {
             result = valueTransformer.transform(strategy.generateUUID(session));
         }
