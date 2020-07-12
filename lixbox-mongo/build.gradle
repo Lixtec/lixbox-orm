@@ -5,7 +5,7 @@ project(':lixbox-mongo'){
         compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
         
         //divers        
-		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
+		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'4.0.5')
 
 
         // ================================ Test ================================
