@@ -32,6 +32,7 @@ import java.util.UUID;
 import javax.persistence.Id;
 
 import org.hibernate.HibernateException;
+import org.hibernate.MappingException;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.dialect.Dialect;
@@ -78,7 +79,7 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
 
         
     
-    public void configure(Type type, Properties params, Dialect d)
+    public void configure(Type type, Properties params, Dialect d) throws MappingException
     {
         // check first for the strategy instance
         strategy = (UUIDGenerationStrategy) params.get(UUID_GEN_STRATEGY);
@@ -90,6 +91,7 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
             {
                 try
                 {
+                    this.getClass();
                     final Class<?> strategyClass = Class.forName(strategyClassName);
                     try
                     {
@@ -131,18 +133,20 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
         
 
 
-    public void configure(Type type, Properties params, ServiceRegistry serviceRegistry)
+    public void configure(Type type, Properties params, ServiceRegistry serviceRegistry) throws MappingException
     {
         // check first for the strategy instance
         strategy = (UUIDGenerationStrategy) params.get(UUID_GEN_STRATEGY);
         if (strategy == null)
         {
+            // next check for the strategy class
             final String strategyClassName = params.getProperty(UUID_GEN_STRATEGY_CLASS);
             if (strategyClassName != null)
             {
                 try
                 {
-                    final ClassLoaderService cls = serviceRegistry.getService(ClassLoaderService.class);
+                    final ClassLoaderService cls = serviceRegistry
+                            .getService(ClassLoaderService.class);
                     final Class<?> strategyClass = cls.classForName(strategyClassName);
                     try
                     {
@@ -185,7 +189,30 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
 
     
 
-    public Serializable generate(SessionImplementor session, Object object)
+    public Serializable generate(SessionImplementor session, Object object) throws HibernateException
+    {
+        Serializable result = extractExistentOid(object);
+        if (result == null || (result instanceof String && StringUtil.isEmpty((String) result)))
+        {
+            result = valueTransformer.transform(strategy.generateUUID(session));
+        }        
+        return result;
+    }
+
+
+
+    public Serializable generate(SharedSessionContractImplementor session, Object object)
+    {
+        Serializable result = extractExistentOid(object);
+        if (result == null || (result instanceof String && StringUtil.isEmpty((String) result)))
+        {
+            result = valueTransformer.transform(strategy.generateUUID(session));
+        }        
+        return result;
+    }
+    
+    
+    private Serializable extractExistentOid(Object object)
     {
         Serializable result = null;
         for (Field field: object.getClass().getFields())
@@ -199,7 +226,7 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
                 }
                 catch (Exception e)
                 {
-                    LOG.debug(e);
+                    e.printStackTrace();
                 }
             }            
         }        
@@ -215,22 +242,10 @@ public class UUIDGenerator implements IdentifierGenerator, Configurable
                 }
                 catch (Exception e)
                 {
-                    LOG.debug(e);
+                    e.printStackTrace();
                 }
             }            
         }
-        if (result instanceof String && StringUtil.isEmpty((String) result))
-        {
-            result = valueTransformer.transform(strategy.generateUUID(session));
-        }
-        
         return result;
-    }
-
-
-
-    public Serializable generate(SharedSessionContractImplementor session, Object object)
-    {
-        return valueTransformer.transform(strategy.generateUUID(session));
     }
 }
