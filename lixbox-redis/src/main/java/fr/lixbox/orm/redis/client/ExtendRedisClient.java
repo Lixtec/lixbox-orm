@@ -81,6 +81,13 @@ public class ExtendRedisClient implements Serializable
     
     
     
+    public Jedis getRedisClient()
+    {
+        return redisClient;
+    }
+    
+    
+    
     public boolean open()
     {
         //ouverture du client redis
