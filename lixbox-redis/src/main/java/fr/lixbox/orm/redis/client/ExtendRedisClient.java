@@ -567,7 +567,18 @@ public class ExtendRedisClient implements Serializable
                 }
                 catch (ClassNotFoundException e)
                 {
-                    LOG.fatal(e);
+                    LOG.debug(e);
+                }
+                if (type==null)
+                {
+                    try
+                    {
+                        type = Thread.currentThread().getContextClassLoader().loadClass(cleanKey);
+                    }
+                    catch (ClassNotFoundException e)
+                    {
+                        LOG.fatal(e);
+                    }                    
                 }
                 return type;
             }
