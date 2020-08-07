@@ -124,7 +124,7 @@ public class SearchQueryHelper
     private static String clearQuery(StringBuilder sbf)
     {
         String query = sbf.toString();
-        query.replace('-', '*');
+        query = query.replace('-', '*');
         return query;
     }
 }
