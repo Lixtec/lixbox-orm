@@ -480,6 +480,7 @@ public class ExtendRedisClient implements Serializable
         open();
         
         Query q = new Query(expression);
+        q.limit(0, 500);
         SearchResult res = searchClient.search(q);
         
         if (res.totalResults>0)
@@ -496,6 +497,35 @@ public class ExtendRedisClient implements Serializable
         {
             LOG.error("No entity find with expression "+expression);
             throw new BusinessException("No entity find with expression "+expression);
+        }
+        return result;
+    }
+
+
+
+    public <T extends RedisSearchDao> List<T> findByExpression(Class<T> entityClass, Query query) 
+        throws BusinessException
+    {
+        List<T> result = new ArrayList<>();
+        Client searchClient = getSearchClientByClass(entityClass);
+        open();
+        
+        SearchResult res = searchClient.search(query);
+        
+        if (res.totalResults>0)
+        {
+            List<String> keys = new ArrayList<>();
+            for (Document doc : res.docs) 
+            {
+                keys.add((String) doc.get("key"));
+            }
+            result = getTypedFromKeys(keys);
+        }
+        close();
+        if (CollectionUtil.isEmpty(result))
+        {
+            LOG.error("No entity find with expression "+query.toString());
+            throw new BusinessException("No entity find with expression "+query.toString());
         }
         return result;
     }
@@ -547,7 +577,7 @@ public class ExtendRedisClient implements Serializable
         return new TypeReference<T>(){
             @Override
             public Type getType() {
-            	return classz;
+                return classz;
             }
         };
     }

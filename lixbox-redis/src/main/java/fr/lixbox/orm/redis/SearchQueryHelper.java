@@ -53,7 +53,7 @@ public class SearchQueryHelper
             sbf.delete(sbf.length()-1, sbf.length());
         }
         sbf.append(")");
-        return sbf.toString();
+        return clearQuery(sbf);
     }
     
     
@@ -72,7 +72,7 @@ public class SearchQueryHelper
             sbf.delete(sbf.length()-1, sbf.length());
         }
         sbf.append(")");
-        return sbf.toString();
+        return clearQuery(sbf);
     }
 
 
@@ -106,7 +106,7 @@ public class SearchQueryHelper
         {
             query.append('*');
         }
-        return query.toString();
+        return clearQuery(query);
     }
 
 
@@ -117,6 +117,14 @@ public class SearchQueryHelper
         query.append(name);
         query.append(':');
         query.append(value);
-        return query.toString();
+        return clearQuery(query);
+    }
+    
+    
+    private static String clearQuery(StringBuilder sbf)
+    {
+        String query = sbf.toString();
+        query.replace('-', '*');
+        return query;
     }
 }
