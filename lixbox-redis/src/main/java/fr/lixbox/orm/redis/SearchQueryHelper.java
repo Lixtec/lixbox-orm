@@ -45,7 +45,7 @@ public class SearchQueryHelper
         StringBuilder sbf = new StringBuilder("@"+attribute+":(");
         for (Object value:values)
         {
-            sbf.append(value!=null?value.toString():"");
+            sbf.append(value!=null?clearValue(value.toString()):"");
             sbf.append(andChar);
         }
         if (sbf.charAt(sbf.length()-1)==andChar) 
@@ -53,7 +53,7 @@ public class SearchQueryHelper
             sbf.delete(sbf.length()-1, sbf.length());
         }
         sbf.append(")");
-        return clearQuery(sbf);
+        return sbf.toString();
     }
     
     
@@ -64,7 +64,7 @@ public class SearchQueryHelper
         StringBuilder sbf = new StringBuilder("@"+attribute+":(");
         for (Object value:values)
         {
-            sbf.append(value!=null?value.toString():"");
+            sbf.append(value!=null?clearValue(value.toString()):"");
             sbf.append(andChar);
         }
         if (sbf.charAt(sbf.length()-1)==andChar) 
@@ -72,7 +72,7 @@ public class SearchQueryHelper
             sbf.delete(sbf.length()-1, sbf.length());
         }
         sbf.append(")");
-        return clearQuery(sbf);
+        return sbf.toString();
     }
 
 
@@ -106,7 +106,7 @@ public class SearchQueryHelper
         {
             query.append('*');
         }
-        return clearQuery(query);
+        return query.toString();
     }
 
 
@@ -116,8 +116,8 @@ public class SearchQueryHelper
         StringBuilder query = new StringBuilder("@");
         query.append(name);
         query.append(':');
-        query.append(value);
-        return clearQuery(query);
+        query.append(clearValue(value));
+        return query.toString();
     }
 
 
@@ -130,7 +130,7 @@ public class SearchQueryHelper
         query.append("[-inf ");
         query.append(value);
         query.append(']');
-        return clearQuery(query);
+        return query.toString();
     }
 
 
@@ -143,7 +143,7 @@ public class SearchQueryHelper
         query.append("[-inf (");
         query.append(value);
         query.append(']');
-        return clearQuery(query);
+        return query.toString();
     }
 
 
@@ -156,7 +156,7 @@ public class SearchQueryHelper
         query.append("[");
         query.append(value);
         query.append(" +inf]");
-        return clearQuery(query);
+        return query.toString();
     }
 
 
@@ -169,7 +169,7 @@ public class SearchQueryHelper
         query.append("[(");
         query.append(value);
         query.append(" +inf]");
-        return clearQuery(query);
+        return query.toString();
     }
 
 
@@ -184,15 +184,17 @@ public class SearchQueryHelper
         query.append(" ");
         query.append(valueMax);
         query.append("]");
-        return clearQuery(query);
+        return query.toString();
     }
     
     
     
-    private static String clearQuery(StringBuilder sbf)
+    private static String clearValue(String value)
     {
-        String query = sbf.toString();
-        query = query.replace('-', '_').replace('@', '_');
-        return query;
+        if (StringUtil.isNotEmpty(value))
+        {
+            value = value.replace('-', '_').replace('@', '_');
+        }
+        return value;
     }
 }
