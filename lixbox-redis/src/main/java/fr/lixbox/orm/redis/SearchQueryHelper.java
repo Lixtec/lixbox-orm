@@ -119,12 +119,80 @@ public class SearchQueryHelper
         query.append(value);
         return clearQuery(query);
     }
+
+
+
+    public static String toLowerEqualThanAttribute(String name, long value)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(name);
+        query.append(':');
+        query.append("[-inf ");
+        query.append(value);
+        query.append(']');
+        return clearQuery(query);
+    }
+
+
+
+    public static String toLowerThanAttribute(String name, long value)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(name);
+        query.append(':');
+        query.append("[-inf (");
+        query.append(value);
+        query.append(']');
+        return clearQuery(query);
+    }
+
+
+
+    public static String toGreaterEqualThanAttribute(String name, long value)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(name);
+        query.append(':');
+        query.append("[");
+        query.append(value);
+        query.append(" +inf]");
+        return clearQuery(query);
+    }
+
+
+
+    public static String toGreaterThanAttribute(String name, long value)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(name);
+        query.append(':');
+        query.append("[(");
+        query.append(value);
+        query.append(" +inf]");
+        return clearQuery(query);
+    }
+
+
+
+    public static String toBetweenAttribute(String name, long valueMin, long valueMax)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(name);
+        query.append(':');
+        query.append("[");
+        query.append(valueMin);
+        query.append(" ");
+        query.append(valueMax);
+        query.append("]");
+        return clearQuery(query);
+    }
+    
     
     
     private static String clearQuery(StringBuilder sbf)
     {
         String query = sbf.toString();
-        query = query.replace('-', '*');
+        query = query.replace('-', '_').replace('@', '_');
         return query;
     }
 }

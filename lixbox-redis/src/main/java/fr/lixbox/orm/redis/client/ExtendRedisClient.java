@@ -97,9 +97,15 @@ public class ExtendRedisClient implements Serializable
             redisClient = new Jedis(host, port);
             redisClient.connect();
         }
-        isOpen = "pong".equalsIgnoreCase(redisClient.ping());
-        
-        
+        try
+        {
+            isOpen = "pong".equalsIgnoreCase(redisClient.ping());
+        }
+        catch (Exception e)
+        {
+            redisClient = null;
+            isOpen = open();
+        }
         return isOpen;
     }
     
