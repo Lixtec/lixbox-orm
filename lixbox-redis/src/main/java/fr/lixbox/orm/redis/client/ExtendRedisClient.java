@@ -146,9 +146,9 @@ public class ExtendRedisClient implements Serializable
     public List<String> getKeys(String pattern)
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
-        redisClient.connect();
+        open();
         List<String> result  = new ArrayList<>(redisClient.keys(internamPattern));
-        redisClient.close();
+        close();
         return result;
     }
     
@@ -165,7 +165,7 @@ public class ExtendRedisClient implements Serializable
         String result = "";
         if (key!=null)
         {
-            redisClient.connect();
+            open();
             switch (redisClient.type(key))
             {
                 case "string":
@@ -174,7 +174,7 @@ public class ExtendRedisClient implements Serializable
                 default:
                     LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
             }
-            redisClient.close();
+            close();
         }
         return result;        
     }
@@ -192,7 +192,7 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (key!=null)
         {
-            redisClient.connect();
+            open();
             switch (redisClient.type(key))
             {
                 case "string":
@@ -204,7 +204,7 @@ public class ExtendRedisClient implements Serializable
                 default:
                     LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
             }
-            redisClient.close();
+            close();
         }
         return result;
     }
@@ -222,12 +222,12 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (keys!=null)
         {
-            redisClient.connect();
+            open();
             if (redisClient.del(keys)>0)
             {
                 result = true;
             } 
-            redisClient.close();
+            close();
         }
         return result;
     }
@@ -244,9 +244,9 @@ public class ExtendRedisClient implements Serializable
     public int size(String pattern)
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
-        redisClient.connect();
+        open();
         List<String> result  = new ArrayList<>(redisClient.keys(internamPattern));
-        redisClient.close();        
+        close();
         return result.size();
     }
     
@@ -280,10 +280,10 @@ public class ExtendRedisClient implements Serializable
         boolean result=false;
         if (!StringUtil.isEmpty(key))
         {
-            redisClient.connect();
+            open();
             result = !StringUtil.isEmpty(redisClient.set(key,value));
             redisClient.expire(key, 60*60*24*15);
-            redisClient.close();  
+            close();  
         }
         return result;
     }
@@ -298,10 +298,8 @@ public class ExtendRedisClient implements Serializable
     public boolean clear()
     {
         boolean result;
-        redisClient.connect();
+        open();
         result = redisClient.flushAll().contains("OK");
-        redisClient.close();
-        
         if (searchClients.size()>0)
         {
             for (Client searchClient : searchClients.values())
@@ -317,6 +315,7 @@ public class ExtendRedisClient implements Serializable
                 }
             }
             searchClients.clear();
+            close();
         }
         return result;
     }
@@ -334,7 +333,7 @@ public class ExtendRedisClient implements Serializable
     public boolean put(Map<String,String> values)
     {
         boolean result;
-        redisClient.connect();
+        open();
         List<String> tmp = new ArrayList<>();        
         for (Entry<String, String> entry : values.entrySet())
         {
@@ -342,7 +341,7 @@ public class ExtendRedisClient implements Serializable
             tmp.add(entry.getValue());
         }                
         result = redisClient.mset(tmp.toArray(new String[0])).contains("OK");
-        redisClient.close();   
+        close();   
         return result;
     }
 
@@ -359,13 +358,13 @@ public class ExtendRedisClient implements Serializable
     public Map<String, String> get(String... keys)
     {
         Map<String,String> result = new HashMap<>();
-        redisClient.connect();
+        open();
         List<String> values = redisClient.mget(keys);
         for (int ix=0; ix<keys.length; ix++)
         {
             result.put(keys[ix], values.get(ix));
-        }                
-        redisClient.close();
+        }
+        close();
         return result;
     }
     
@@ -425,6 +424,7 @@ public class ExtendRedisClient implements Serializable
         {
             mergeNoManaged(object);
         }
+        close();
         return objects;
     }
     
