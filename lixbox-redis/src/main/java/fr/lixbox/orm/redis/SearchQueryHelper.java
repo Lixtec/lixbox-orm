@@ -102,7 +102,7 @@ public class SearchQueryHelper
                 }
                 else if (value instanceof Enum<?>)
                 {
-                    query.append(toStringAttribute(index.name, ((Enum<?>)value).name()));
+                    query.append(toStringAttribute(index.name, value.toString()));
                     query.append(' ');
                 }
             }
