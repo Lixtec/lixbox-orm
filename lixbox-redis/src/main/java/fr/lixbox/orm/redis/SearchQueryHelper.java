@@ -45,7 +45,7 @@ public class SearchQueryHelper
         StringBuilder sbf = new StringBuilder("@"+attribute+":(");
         for (Object value:values)
         {
-            sbf.append(value!=null?clearValue(value.toString()):"");
+            sbf.append(value!=null?RedisSearchValueSanitizer.sanitizeValue(value.toString()):"");
             sbf.append(andChar);
         }
         if (sbf.charAt(sbf.length()-1)==andChar) 
@@ -64,7 +64,7 @@ public class SearchQueryHelper
         StringBuilder sbf = new StringBuilder("@"+attribute+":(");
         for (Object value:values)
         {
-            sbf.append(value!=null?clearValue(value.toString()):"");
+            sbf.append(value!=null?RedisSearchValueSanitizer.sanitizeValue(value.toString()):"");
             sbf.append(andChar);
         }
         if (sbf.charAt(sbf.length()-1)==andChar) 
@@ -90,14 +90,19 @@ public class SearchQueryHelper
                     query.append(toStringAttribute(index.name, (String) value));
                     query.append(' ');
                 }
-                if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
+                else if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
                 {
                     query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
                     query.append(' ');
                 }
-                if (value instanceof Boolean)
+                else if (value instanceof Boolean)
                 {
                     query.append(toStringAttribute(index.name, value.toString()));
+                    query.append(' ');
+                }
+                else if (value instanceof Enum<?>)
+                {
+                    query.append(toStringAttribute(index.name, ((Enum<?>)value).name()));
                     query.append(' ');
                 }
             }
@@ -116,7 +121,7 @@ public class SearchQueryHelper
         StringBuilder query = new StringBuilder("@");
         query.append(name);
         query.append(':');
-        query.append(clearValue(value));
+        query.append(RedisSearchValueSanitizer.sanitizeValue(value));
         return query.toString();
     }
 
@@ -185,16 +190,5 @@ public class SearchQueryHelper
         query.append(valueMax);
         query.append("]");
         return query.toString();
-    }
-    
-    
-    
-    private static String clearValue(String value)
-    {
-        if (StringUtil.isNotEmpty(value))
-        {
-            value = value.replace('-', '_').replace('@', '_');
-        }
-        return value;
     }
 }
