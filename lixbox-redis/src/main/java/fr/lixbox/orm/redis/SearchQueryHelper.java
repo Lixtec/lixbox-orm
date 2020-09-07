@@ -95,12 +95,7 @@ public class SearchQueryHelper
                     query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
                     query.append(' ');
                 }
-                else if (value instanceof Boolean)
-                {
-                    query.append(toStringAttribute(index.name, value.toString()));
-                    query.append(' ');
-                }
-                else if (value instanceof Enum<?>)
+                else if (value instanceof Boolean || value instanceof Enum<?>)
                 {
                     query.append(toStringAttribute(index.name, value.toString()));
                     query.append(' ');
