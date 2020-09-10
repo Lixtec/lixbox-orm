@@ -88,12 +88,12 @@ public class SearchQueryHelper
             if (criteria.getIndexFieldValues().containsKey(index.name))
             {
                 Object value = criteria.getIndexFieldValues().get(index.name);
-                if (value instanceof String && StringUtil.isNotEmpty((String) value) && ((String)value).startsWith("[")  && ((String)value).endsWith("]"))
+                if (value instanceof String && StringUtil.isNotEmpty((String) value) && ((String)value).startsWith("[")  && ((String)value).endsWith("]") && ((String)value).length()>2)
                 {
                     query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
                     query.append(' ');
                 }
-                else if (value instanceof String && StringUtil.isNotEmpty((String) value))
+                else if (value instanceof String && StringUtil.isNotEmpty((String) value) && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
                 {
                     query.append(toStringAttribute(index.name, (String) value));
                     query.append(' ');
