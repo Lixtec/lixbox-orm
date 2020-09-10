@@ -25,8 +25,11 @@ package fr.lixbox.orm.redis;
 
 import java.util.Collection;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.StringUtil;
+import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import io.redisearch.Schema.Field;
 
@@ -85,9 +88,19 @@ public class SearchQueryHelper
             if (criteria.getIndexFieldValues().containsKey(index.name))
             {
                 Object value = criteria.getIndexFieldValues().get(index.name);
-                if (value instanceof String && StringUtil.isNotEmpty((String) value))
+                if (value instanceof String && StringUtil.isNotEmpty((String) value) && ((String)value).startsWith("[")  && ((String)value).endsWith("]"))
+                {
+                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
+                    query.append(' ');
+                }
+                else if (value instanceof String && StringUtil.isNotEmpty((String) value))
                 {
                     query.append(toStringAttribute(index.name, (String) value));
+                    query.append(' ');
+                }
+                else if (value.getClass().isArray())
+                {
+                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
                     query.append(' ');
                 }
                 else if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
