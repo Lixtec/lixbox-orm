@@ -98,7 +98,7 @@ public class SearchQueryHelper
                     query.append(toStringAttribute(index.name, (String) value));
                     query.append(' ');
                 }
-                else if (value.getClass().isArray())
+                else if (value!=null && value.getClass().isArray())
                 {
                     query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
                     query.append(' ');
