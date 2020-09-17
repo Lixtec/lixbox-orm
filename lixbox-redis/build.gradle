@@ -63,7 +63,7 @@ project(':lixbox-redis'){
         targetImageId 'redislabs/redisearch:latest'
         containerName = 'lixbox_redis_test'
         hostConfig.autoRemove = true
-        hostConfig.portBindings = ['6380:6379']
+        hostConfig.portBindings = ['6480:6379']
     }
     task startRedisContainer(type: DockerStartContainer, group: "docker", description: "start redis container") {
         targetContainerId "lixbox_redis_test"
