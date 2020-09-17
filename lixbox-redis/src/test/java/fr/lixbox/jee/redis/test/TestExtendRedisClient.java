@@ -57,7 +57,7 @@ public class TestExtendRedisClient implements Serializable
     @Before
     public void prepare()
     {
-        client = new ExtendRedisClient("main-host", 6380);
+        client = new ExtendRedisClient("main.host", 6480);
     }
 
     
