@@ -41,4 +41,5 @@ public interface RedisSearchDao extends Dao
     @JsonIgnore String getKey();
     @JsonIgnore Schema getIndexSchema();
     @JsonIgnore Map<String, Object> getIndexFieldValues();
+    @JsonIgnore long getTTL();
 }

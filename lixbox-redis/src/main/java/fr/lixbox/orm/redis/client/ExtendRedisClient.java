@@ -282,12 +282,19 @@ public class ExtendRedisClient implements Serializable
         {
             open();
             result = !StringUtil.isEmpty(redisClient.set(key,value));
-            redisClient.expire(key, 60*60*24*15);
             close();  
         }
         return result;
     }
-    
+    public boolean put(String key, String value, long ttl)
+    {
+        boolean result=put(key,value);
+        open();
+        redisClient.pexpire(key, ttl);
+        close();
+        result &= true;
+        return result;
+    }
 
     
     /**
@@ -326,16 +333,16 @@ public class ExtendRedisClient implements Serializable
     /**
      * Cette methode enregistre les associations clé valeur dans le cache.
      * 
-     * @param values
+     * @param entries
      * 
      * @return true si l'écriture est ok
      */
-    public boolean put(Map<String,String> values)
+    public boolean put(Map<String,String> entries)
     {
         boolean result;
         open();
         List<String> tmp = new ArrayList<>();        
-        for (Entry<String, String> entry : values.entrySet())
+        for (Entry<String, String> entry : entries.entrySet())
         {
             tmp.add(entry.getKey());
             tmp.add(entry.getValue());
@@ -344,7 +351,17 @@ public class ExtendRedisClient implements Serializable
         close();   
         return result;
     }
-
+    public boolean put(Map<String,String> entries, long ttl)
+    {
+        boolean result = put(entries);
+        open();
+        for (String key : entries.keySet())
+        {
+            redisClient.pexpire(key, ttl);
+        }  
+        close();
+        return result;
+    }
     
     
     /**
@@ -540,20 +557,12 @@ public class ExtendRedisClient implements Serializable
     
     private <T extends RedisSearchDao> Client getSearchClient(T object)
     {
-        //ouverture du client redis
-        if (!searchClients.containsKey(object.getClass().getSimpleName()))
-        {            
-            searchClients.put(object.getClass().getSimpleName() , new io.redisearch.client.Client(object.getClass().getSimpleName(), host, port));
-            try
-            {
-                searchClients.get(object.getClass().getSimpleName()).createIndex(object.getIndexSchema(), IndexOptions.defaultOptions());
-            }
-            catch (Exception e)
-            {
-                //existe peut être
-            }
+        Client result = null;
+        if (object!=null)
+        {
+            result = getSearchClientByClass(object.getClass());
         }
-        return searchClients.get(object.getClass().getSimpleName());
+        return result;
     }
     
 
@@ -566,7 +575,13 @@ public class ExtendRedisClient implements Serializable
             searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), host, port));
             try
             {
-                searchClients.get(entityClass.getSimpleName()).createIndex(entityClass.getDeclaredConstructor().newInstance().getIndexSchema(), IndexOptions.defaultOptions());
+                T instance = entityClass.getDeclaredConstructor().newInstance();
+                IndexOptions defaultOptions = IndexOptions.defaultOptions();
+                if (instance.getTTL()>0)
+                {
+                    defaultOptions.setTemporary(instance.getTTL());
+                }
+                searchClients.get(entityClass.getSimpleName()).createIndex(instance.getIndexSchema(), defaultOptions);
             }
             catch (Exception e)
             {
@@ -635,6 +650,10 @@ public class ExtendRedisClient implements Serializable
             object.setOid(GuidGenerator.getGUID(object));
             String json = JsonUtil.transformObjectToJson(object, false);
             redisClient.set(object.getKey(), json);
+            if (object.getTTL()>0)
+            {
+                redisClient.pexpire(object.getKey(), object.getTTL());
+            }
             Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
             indexField.put("oid", object.getOid());
             indexField.put("key", object.getKey());

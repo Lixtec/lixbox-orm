@@ -200,4 +200,12 @@ public class JNO implements RedisSearchDao, Dao
     {
         return "LIXBOX:OBJECT:"+this.getClass().getName()+":"+oid;
     }
+    
+    
+    
+    @Override
+    public long getTTL()
+    {
+        return 0;
+    }
 }
