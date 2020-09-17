@@ -640,6 +640,9 @@ public class ExtendRedisClient implements Serializable
     
     private <T extends RedisSearchDao> T mergeNoManaged(T object)
     {
+        if (object==null) {
+            return object;
+        }
         Client searchClient = getSearchClient(object);
         if (object instanceof OptimisticDao)
         {
