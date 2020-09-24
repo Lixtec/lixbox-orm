@@ -40,6 +40,10 @@ public class RedisSearchValueSanitizer
         {
             value = ((String)value).replace('-', '_').replace('@', '_').replace('.', '_');
         }
+        if (value == null)
+        {
+            value = "";
+        }
         return value;
     }
 }
