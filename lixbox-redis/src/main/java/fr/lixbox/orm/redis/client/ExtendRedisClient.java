@@ -555,7 +555,7 @@ public class ExtendRedisClient implements Serializable
     
     
     
-    private <T extends RedisSearchDao> Client getSearchClient(T object)
+    public <T extends RedisSearchDao> Client getSearchClient(T object)
     {
         Client result = null;
         if (object!=null)
@@ -567,7 +567,7 @@ public class ExtendRedisClient implements Serializable
     
 
     
-    private <T extends RedisSearchDao> Client getSearchClientByClass(Class<T> entityClass)
+    public <T extends RedisSearchDao> Client getSearchClientByClass(Class<T> entityClass)
     {
       //ouverture du client redis
         if (!searchClients.containsKey(entityClass.getSimpleName()))
