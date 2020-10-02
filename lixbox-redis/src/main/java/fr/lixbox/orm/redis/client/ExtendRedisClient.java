@@ -651,24 +651,24 @@ public class ExtendRedisClient implements Serializable
         if (StringUtil.isEmpty(object.getOid()))
         {
             object.setOid(GuidGenerator.getGUID(object));
-            String json = JsonUtil.transformObjectToJson(object, false);
-            redisClient.set(object.getKey(), json);
-            if (object.getTTL()>0)
-            {
-                redisClient.pexpire(object.getKey(), object.getTTL());
-            }
-            Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
-            indexField.put("oid", object.getOid());
-            indexField.put("key", object.getKey());
+        }
+         
+        String json = JsonUtil.transformObjectToJson(object, false);
+        redisClient.set(object.getKey(), json);
+        if (object.getTTL()>0)
+        {
+            redisClient.pexpire(object.getKey(), object.getTTL());
+        }
+        Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
+        indexField.put("oid", object.getOid());
+        indexField.put("key", object.getKey());
+        
+        if (StringUtil.isEmpty(object.getOid()))
+        {
             searchClient.addDocument(object.getOid(), indexField);
         }
         else
         {
-            String json = JsonUtil.transformObjectToJson(object, false);
-            redisClient.set(object.getKey(), json);
-            Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
-            indexField.put("oid", object.getOid());
-            indexField.put("key", object.getKey());
             searchClient.replaceDocument(object.getOid(), 1, indexField);
         }
         return object;

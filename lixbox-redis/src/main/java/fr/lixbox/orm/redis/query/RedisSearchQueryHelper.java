@@ -21,7 +21,7 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.orm.redis;
+package fr.lixbox.orm.redis.query;
 
 import java.util.Collection;
 
@@ -33,9 +33,9 @@ import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import io.redisearch.Schema.Field;
 
-public class SearchQueryHelper
+public class RedisSearchQueryHelper
 {
-    private SearchQueryHelper()
+    private RedisSearchQueryHelper()
     {
         //singleton
     }
@@ -78,9 +78,16 @@ public class SearchQueryHelper
         return sbf.toString();
     }
 
-
+    
 
     public static String toQueryByCriteria(RedisSearchDao criteria)
+    {
+        return toQueryByCriteria(criteria, false);
+    }
+
+    
+    
+    public static String toQueryByCriteria(RedisSearchDao criteria, boolean startWith)
     {
         StringBuilder query = new StringBuilder("");
         for (Field index : criteria.getIndexSchema().fields)
@@ -95,7 +102,7 @@ public class SearchQueryHelper
                 }
                 else if (value instanceof String && StringUtil.isNotEmpty((String) value) && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
                 {
-                    query.append(toStringAttribute(index.name, (String) value));
+                    query.append(toStringAttribute(index.name, (String) value, startWith));
                     query.append(' ');
                 }
                 else if (value!=null && value.getClass().isArray())
@@ -126,10 +133,20 @@ public class SearchQueryHelper
 
     public static String toStringAttribute(String name, String value)
     {
+        return toStringAttribute(name, value, false);
+    }
+
+
+    public static String toStringAttribute(String name, String value, boolean startWith)
+    {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
         query.append(':');
         query.append(RedisSearchValueSanitizer.sanitizeValue(value));
+        if (startWith)
+        {
+            query.append('*');
+        }
         return query.toString();
     }
 

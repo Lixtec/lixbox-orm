@@ -21,7 +21,7 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.orm.redis;
+package fr.lixbox.orm.redis.query;
 
 import fr.lixbox.common.util.StringUtil;
 
