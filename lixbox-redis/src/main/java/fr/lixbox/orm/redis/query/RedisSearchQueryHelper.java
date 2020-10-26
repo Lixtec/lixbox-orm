@@ -229,10 +229,7 @@ public class RedisSearchQueryHelper
             query.append(')');
             query.append('|');
         }
-        if (criterias!=null && criterias.length>1)
-        {
-            query.deleteCharAt(query.length()-1);
-        }
+        query.deleteCharAt(query.length()-1);
         return query.toString();
     }
 
