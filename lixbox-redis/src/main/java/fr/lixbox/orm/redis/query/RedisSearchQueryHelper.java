@@ -216,4 +216,32 @@ public class RedisSearchQueryHelper
         query.append("]");
         return query.toString();
     }
+
+
+
+    public static String toOrCriterias(String... criterias)
+    {
+        StringBuilder query = new StringBuilder();
+        for (String criteria : criterias)
+        {
+            query.append('(');
+            query.append(criteria);
+            query.append(')');
+            query.append('|');
+        }
+        if (criterias!=null && criterias.length>1)
+        {
+            query.deleteCharAt(query.length()-1);
+        }
+        return query.toString();
+    }
+
+
+
+    public static String toNotCriteria(String criteria)
+    {
+        StringBuilder query = new StringBuilder("-");
+        query.append(criteria);
+        return query.toString();
+    }
 }
