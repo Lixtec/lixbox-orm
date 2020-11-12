@@ -394,7 +394,7 @@ public class HibernateDetachUtil implements Serializable
         for (Field field : classFields)
         {
             accessModifierFlag = false;
-            if (!field.isAccessible())
+            if (!field.canAccess(field))
             {
                 field.setAccessible(true);
                 accessModifierFlag = true;
@@ -475,7 +475,7 @@ public class HibernateDetachUtil implements Serializable
                             Constructor ct = clazz.getDeclaredConstructor();
                             ct.setAccessible(true);
                             replacement = ct.newInstance();
-                            if (!field.isAccessible())
+                            if (!field.canAccess(field))
                             {
                                 idField.setAccessible(true);
                             }
