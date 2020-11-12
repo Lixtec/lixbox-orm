@@ -5,7 +5,7 @@ desc_project{
     withRegistry=false
     withQuarkus=false
     version{
-        majorVersion=8
+        majorVersion=11
         mediumVersion=1
         minorVersion=0
     }

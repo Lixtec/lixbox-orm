@@ -9,7 +9,7 @@ project(':lixbox-mongo'){
 
 
         // ================================ Test ================================
-		testCompile 'junit:junit:4.12'
+        testCompile group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

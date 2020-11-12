@@ -16,8 +16,7 @@ project(':lixbox-redis'){
 
 
         // ================================ Test ================================
-		testCompile 'junit:junit:4.12'
-        testCompileOnly (group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '2.3.3')
+        testCompile group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

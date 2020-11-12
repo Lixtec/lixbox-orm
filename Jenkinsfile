@@ -3,7 +3,7 @@ projectSiteUri = 'https://project-site.service.lixtec.fr/lixbox-orm';
 gitUri = 'https://scm.service.dev.lan/lixbox/lixbox-orm.git';
 mattermostUri = 'https://team.service.lixtec.fr/hooks/xwqzwmg7zpf18kkdxm3tqw1kqh';
 channel = 'lixbox';
-branchName = 'jdk-8'
+branchName = 'jdk-11'
 
 @NonCPS
 def onFailed(e) {
@@ -15,7 +15,7 @@ def onFailed(e) {
     sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew removeRedisContainer --stacktrace'
 }
     
-node('slave-gradle-jdk8') {    
+node('slave-gradle-jdk11') {
     stage('Init'){
         echo 'Initialisation started'
         try{
