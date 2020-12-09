@@ -1,16 +1,14 @@
-project(':lixbox-entity'){    
+project(':lixbox-entity'){
 	dependencies {
         //lixbox
 		compile(group: 'fr.lixbox.lixbox-common', name: 'lixbox-core', version: version_lixbox_common)
 
-
         //divers        
         compileOnly group: 'org.hibernate.validator', name: 'hibernate-validator', version: version_hibernate_validator
-        
 
 
         // ================================ Test ================================
-		testCompile 'junit:junit:4.12'
+        testCompile group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

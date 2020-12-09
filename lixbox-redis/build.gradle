@@ -11,13 +11,12 @@ project(':lixbox-redis'){
         
         
         //redis
-        implementation group: 'redis.clients', name: 'jedis', version: '3.3.0'
-        implementation group: 'com.redislabs', name: 'jredisearch', version: '1.8.0'
+        compile group: 'redis.clients', name: 'jedis', version: '3.3.0'
+        compile group: 'com.redislabs', name: 'jredisearch', version: '1.7.0'
 
 
         // ================================ Test ================================
-		testCompile 'junit:junit:4.12'
-        testCompileOnly (group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '2.3.3')
+        testCompile group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{
@@ -63,7 +62,7 @@ project(':lixbox-redis'){
         targetImageId 'redislabs/redisearch:latest'
         containerName = 'lixbox_redis_test'
         hostConfig.autoRemove = true
-        hostConfig.portBindings = ['6380:6379']
+        hostConfig.portBindings = ['6480:6379']
     }
     task startRedisContainer(type: DockerStartContainer, group: "docker", description: "start redis container") {
         targetContainerId "lixbox_redis_test"

@@ -3,7 +3,7 @@ projectSiteUri = 'https://project-site.service.lixtec.fr/lixbox-orm';
 gitUri = 'https://github.com/lixbox-team/lixbox-orm.git';
 mattermostUri = 'https://team.service.lixtec.fr/hooks/xwqzwmg7zpf18kkdxm3tqw1kqh';
 channel = 'lixbox';
-branchName = 'jdk-8'
+branchName = 'jdk-11'
 
 @NonCPS
 def onFailed(e) {
@@ -12,9 +12,10 @@ def onFailed(e) {
     def title = JOB_NAME+' - Build # '+BUILD_NUMBER+' - '+BUILD_STATUS+'!';
     def msg = 'The '+JOB_NAME+' - Build # '+BUILD_NUMBER+' is '+BUILD_STATUS+'. \n Check console output at '+BUILD_URL+' to view the results or check the project site at '+projectSiteUri;   
     mattermostSend channel: channel, color: '#dd4040', endpoint: mattermostUri, message: msg, text: title
+    sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew removeRedisContainer --stacktrace'
 }
     
-node('slave-gradle-jdk8') {    
+node('slave-gradle-jdk11') {
     stage('Init'){
         echo 'Initialisation started'
         try{
@@ -40,7 +41,8 @@ node('slave-gradle-jdk8') {
     stage('Check'){
         echo 'Check started'
         try{
-            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew check --stacktrace'            
+            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew check --stacktrace'
+            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew removeRedisContainer --stacktrace'            
         }
         catch (e){
 //            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew site uploadSite --stacktrace'

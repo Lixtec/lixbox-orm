@@ -43,7 +43,7 @@ import javax.validation.Payload;
 @Documented
 @Constraint(validatedBy=IP6Validator.class)
 public @interface IP6 {
-	String message() default "{fr.lixtec.lixbox.jee.validator.constraints.IP.message}";
+	String message() default "{fr.lixbox.orm.entity.validator.constraints.IP.message}";
 	Class<?>[] groups() default{};
 	Class<? extends Payload>[] payload() default{};
 }

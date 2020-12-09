@@ -43,7 +43,7 @@ import javax.validation.Payload;
 @Documented
 @Constraint(validatedBy=ValidateValidator.class)
 public @interface Validate {
-	String message() default "{fr.lixtec.lixbox.jee.validator.constraints.validate.message}";
+	String message() default "{fr.lixbox.orm.entity.validator.constraints.validate.message}";
 	Class<?>[] groups() default{};
 	Class<? extends Payload>[] payload() default{};
 }

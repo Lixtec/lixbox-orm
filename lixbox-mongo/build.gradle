@@ -5,11 +5,11 @@ project(':lixbox-mongo'){
         compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
         
         //divers        
-		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'4.0.5')
+		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
 
 
         // ================================ Test ================================
-		testCompile 'junit:junit:4.12'
+        testCompile group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

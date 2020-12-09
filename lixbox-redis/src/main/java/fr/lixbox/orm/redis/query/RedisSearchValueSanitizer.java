@@ -21,25 +21,29 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.orm.redis.model;
+package fr.lixbox.orm.redis.query;
 
-import java.util.Map;
+import fr.lixbox.common.util.StringUtil;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import fr.lixbox.orm.entity.model.Dao;
-import io.redisearch.Schema;
-
-/**
- * Cette interface est le contrat de base pour pouvoir utiliser
- * la recherche avancee de Redis
- * 
- * @author ludovic.terral
- */
-public interface RedisSearchDao extends Dao
+public class RedisSearchValueSanitizer
 {
-    @JsonIgnore String getKey();
-    @JsonIgnore Schema getIndexSchema();
-    @JsonIgnore Map<String, Object> getIndexFieldValues();
-    @JsonIgnore long getTTL();
+    private RedisSearchValueSanitizer()
+    {
+        //singleton
+    }
+    
+    
+    
+    public static Object sanitizeValue(Object value)
+    {
+        if (value instanceof String && StringUtil.isNotEmpty((String)value))
+        {
+            value = ((String)value).replace('-', '_').replace('@', '_').replace('.', '_');
+        }
+        if (value == null)
+        {
+            value = "";
+        }
+        return value;
+    }
 }
