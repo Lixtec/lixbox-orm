@@ -51,6 +51,7 @@ import io.redisearch.Document;
 import io.redisearch.Query;
 import io.redisearch.SearchResult;
 import io.redisearch.client.Client.IndexOptions;
+import io.redisearch.client.IndexDefinition;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -579,8 +580,9 @@ public class ExtendRedisClient implements Serializable
                 IndexOptions defaultOptions = IndexOptions.defaultOptions();
                 if (instance.getTTL()>0)
                 {
-                    defaultOptions.setTemporary(instance.getTTL());
+                    defaultOptions.setTemporary(instance.getTTL()/1000);
                 }
+                defaultOptions.setDefinition(new IndexDefinition());
                 searchClients.get(entityClass.getSimpleName()).createIndex(instance.getIndexSchema(), defaultOptions);
             }
             catch (Exception e)
