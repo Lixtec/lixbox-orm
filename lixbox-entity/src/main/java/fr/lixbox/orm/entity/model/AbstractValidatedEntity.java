@@ -42,7 +42,7 @@ import fr.lixbox.common.model.enumeration.NiveauEvenement;
  * 
  * @author ludovic.terral
  */
-public abstract class AbstractValidatedEntity implements Dao
+public abstract class AbstractValidatedEntity implements Dao, ValidatedDao
 {
     // ----------- Attribut(s) -----------
     private static final long serialVersionUID = 5806736426434897771L;

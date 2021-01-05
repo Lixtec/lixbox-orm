@@ -28,7 +28,7 @@ package fr.lixbox.orm.entity.model;
  * 
  * @author ludovic.terral
  */
-public interface ExtendEmbeddable extends ValidatedPojo
+public interface ExtendEmbeddable extends ValidatedDao
 {    
     // ----------- Methode -----------
     boolean getEstRempli();    

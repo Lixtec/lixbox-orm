@@ -23,16 +23,17 @@
  ******************************************************************************/
 package fr.lixbox.orm.entity.model;
 
+import java.io.Serializable;
+
 /**
  * Cette interface represente les attributs necessaire a une entite pour
  * pouvoir etre utiliser par le manager de DAO.
  * 
  * @author ludovic.terral
  */
-public interface Dao extends ValidatedPojo
+public interface Dao extends Serializable
 {    
     // ----------- Methode -----------
     String getOid();
     void setOid(String oid);
-    String toString();    
 }

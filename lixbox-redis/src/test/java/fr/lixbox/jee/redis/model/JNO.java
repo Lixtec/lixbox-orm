@@ -34,8 +34,6 @@ import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fr.lixbox.common.model.ConteneurEvenement;
-import fr.lixbox.common.model.Contexte;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.entity.model.Dao;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
@@ -104,56 +102,6 @@ public class JNO implements RedisSearchDao, Dao
     public void setEstActif(final boolean estActif)
     {
         this.estActif = estActif;
-    }
-
-    
-    
-    /**
-     * Cette methode valide la coherence 
-     * de l'entite
-     *    
-     * @return un ConteneurEvenement
-     */
-    @Override
-    public ConteneurEvenement validate()
-    {
-        return validate("JourFerie.");
-    }      
-    
-        
-    
-    /**
-     * Cette methode valide la coherence 
-     * de l'entite
-     * 
-     * @param parent element parent dans l'arbre des objets
-     *     
-     * @return un ConteneurEvenement
-     */
-    @Override
-    public ConteneurEvenement validate(final String parent)
-    {   
-        final Contexte contexte = new Contexte();    
-        return validate(parent, contexte);
-    }
-        
-        
-        
-    /**
-     * Cette methode valide la coherence 
-     * de l'entite
-     * 
-     * @param parent element parent dans l'arbre des objets
-     * @param contexte Contexte
-     * 
-     * @return un ConteneurEvenement
-     */
-    @Override
-    public ConteneurEvenement validate(final String parent, final Contexte contexte)
-    {  
-        contexte.put("parent", parent);    
-        contexte.put("classSignature", JNO.class.getName()); //$NON-NLS-1$
-        return new ConteneurEvenement();
     }
 
 

@@ -28,7 +28,7 @@ package fr.lixbox.orm.entity.model;
  * 
  * @author ludovic.terral
  */
-public interface ComplexEmbeddable extends ValidatedPojo, ExtendEmbeddable
+public interface ComplexEmbeddable extends ValidatedDao, ExtendEmbeddable
 {    
     // ----------- Methode -----------
     void setHasInit(boolean hasInit);

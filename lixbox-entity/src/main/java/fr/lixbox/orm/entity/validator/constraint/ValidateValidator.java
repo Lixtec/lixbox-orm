@@ -29,7 +29,7 @@ import javax.validation.ConstraintValidatorContext;
 import fr.lixbox.common.exceptions.BusinessException;
 import fr.lixbox.common.model.ConteneurEvenement;
 import fr.lixbox.common.model.Evenement;
-import fr.lixbox.orm.entity.model.ValidatedPojo;
+import fr.lixbox.orm.entity.model.ValidatedDao;
 
 /**
  * Ce validateur invoque la validation de l'entite
@@ -60,12 +60,12 @@ public class ValidateValidator implements ConstraintValidator<Validate, Object>
             conteneur = new ConteneurEvenement();
             for (Object item : (Iterable<?>)value)
             {
-                conteneur.addAll(validateObject((ValidatedPojo) item));
+                conteneur.addAll(validateObject((ValidatedDao) item));
             }
         }
         else
         {
-            conteneur = validateObject((ValidatedPojo) value);
+            conteneur = validateObject((ValidatedDao) value);
         }
 
         if (conteneur.getSize()>0)
@@ -80,7 +80,7 @@ public class ValidateValidator implements ConstraintValidator<Validate, Object>
     
     
     
-    protected ConteneurEvenement validateObject(ValidatedPojo value)
+    protected ConteneurEvenement validateObject(ValidatedDao value)
     {
         ConteneurEvenement conteneur;
         try

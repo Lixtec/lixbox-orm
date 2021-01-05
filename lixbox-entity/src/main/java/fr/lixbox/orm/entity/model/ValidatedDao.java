@@ -36,7 +36,7 @@ import fr.lixbox.common.model.Contexte;
  * 
  * @author ludovic.terral
  */
-public interface ValidatedPojo extends Serializable
+public interface ValidatedDao extends Serializable
 {    
     // ----------- Methode(s) -----------
     boolean equals(Object other);
