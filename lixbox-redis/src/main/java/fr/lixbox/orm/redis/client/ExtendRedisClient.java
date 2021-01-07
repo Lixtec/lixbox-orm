@@ -52,22 +52,24 @@ import io.redisearch.Query;
 import io.redisearch.SearchResult;
 import io.redisearch.client.Client.IndexOptions;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 /**
  * Cette classe interface l'univers redis avec l'univers POJO.
  * 
  * @author ludovic.terral
  */
-public class ExtendRedisClient implements Serializable
+public class ExtendRedisClient implements Serializable, AutoCloseable
 {    
     private static final long serialVersionUID = -3968936170594429132L;
     private static final Log LOG = LogFactory.getLog(ExtendRedisClient.class);
     
+    private transient JedisPool pool;
     private transient Jedis redisClient;
     private transient Map<String, Client> searchClients;
-    private String host;    
-    private int port;
-    
+    private String host;
+    private int port=0;
+
     
     /**
      * Ce constructeur sert à l'initialisation de l'acces a la base.
@@ -78,28 +80,63 @@ public class ExtendRedisClient implements Serializable
         this.port = port;
         this.searchClients = new HashMap<>();
     }
+    public ExtendRedisClient(JedisPool pool) 
+    {
+        this.pool = pool;
+        this.redisClient = pool.getResource();
+        this.searchClients = new HashMap<>();
+    }
     
     
     
     public Jedis getRedisClient()
     {
+        if (needToOpen())
+        {
+            open();
+        }
         return redisClient;
     }
     
+    
+    
+    private boolean needToOpen()
+    {
+        boolean result = false;
+        
+        try
+        {
+            if (redisClient==null || !"pong".equalsIgnoreCase(redisClient.ping()))
+            {
+                result = true;
+            }
+        }
+        catch (Exception e)
+        {
+            result = true;
+        }
+        return result;
+    }
     
     
     public boolean open()
     {
         //ouverture du client redis
         boolean isOpen = false;
-        if (redisClient==null || !redisClient.isConnected())
-        {
-            redisClient = new Jedis(host, port);
-            redisClient.connect();
-        }
         try
         {
-            isOpen = "pong".equalsIgnoreCase(redisClient.ping());
+            if (redisClient==null|| ("pong".equalsIgnoreCase(redisClient.ping())))
+            {
+                if (pool!=null)
+                {
+                    redisClient = pool.getResource();
+                }
+                else
+                {
+                    redisClient = new Jedis(host, port);
+                }
+            }
+            isOpen = true;
         }
         catch (Exception e)
         {
@@ -111,19 +148,17 @@ public class ExtendRedisClient implements Serializable
     
     
     
+    @Override
     public void close()
     {
-        if (redisClient!=null)
-        {
-            redisClient.close();
-        }
+        redisClient.close();
         if (searchClients.size()>0)
         {
             for (Client searchClient : searchClients.values())
             {
                 try 
                 {
-                    searchClient.close();
+                    searchClient.connection().close();
                 }
                 catch (Exception e)
                 {
@@ -146,8 +181,7 @@ public class ExtendRedisClient implements Serializable
     public List<String> getKeys(String pattern)
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
-        open();
-        List<String> result  = new ArrayList<>(redisClient.keys(internamPattern));
+        List<String> result  = new ArrayList<>(getRedisClient().keys(internamPattern));
         close();
         return result;
     }
@@ -165,18 +199,30 @@ public class ExtendRedisClient implements Serializable
         String result = "";
         if (key!=null)
         {
-            open();
-            switch (redisClient.type(key))
+            switch (getRedisClient().type(key))
             {
                 case "string":
-                    result = redisClient.get(key);
+                    result = getRedisClient().get(key);
                     break;
                 default:
-                    LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
+                    LOG.error("UNSUPPORTED FORMAT "+getRedisClient().type(key));
             }
             close();
         }
-        return result;        
+        return result;
+    }
+
+
+
+    public List<String> mget(String[] arrays)
+    {
+        List<String> result = new ArrayList<>();
+        if (arrays!=null && arrays.length>0)
+        {
+            result.addAll(getRedisClient().mget(arrays));
+        }
+        close();
+        return result;
     }
 
     
@@ -192,17 +238,16 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (key!=null)
         {
-            open();
-            switch (redisClient.type(key))
+            switch (getRedisClient().type(key))
             {
                 case "string":
-                    if (redisClient.del(key)>0)
+                    if (getRedisClient().del(key)>0)
                     {
                         result = true;
                     } 
                     break;
                 default:
-                    LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
+                    LOG.error("UNSUPPORTED FORMAT "+getRedisClient().type(key));
             }
             close();
         }
@@ -222,8 +267,7 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (keys!=null)
         {
-            open();
-            if (redisClient.del(keys)>0)
+            if (getRedisClient().del(keys)>0)
             {
                 result = true;
             } 
@@ -244,8 +288,7 @@ public class ExtendRedisClient implements Serializable
     public int size(String pattern)
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
-        open();
-        List<String> result  = new ArrayList<>(redisClient.keys(internamPattern));
+        List<String> result  = new ArrayList<>(getRedisClient().keys(internamPattern));
         close();
         return result.size();
     }
@@ -280,8 +323,7 @@ public class ExtendRedisClient implements Serializable
         boolean result=false;
         if (!StringUtil.isEmpty(key))
         {
-            open();
-            result = !StringUtil.isEmpty(redisClient.set(key,value));
+            result = !StringUtil.isEmpty(getRedisClient().set(key,value));
             close();  
         }
         return result;
@@ -289,8 +331,7 @@ public class ExtendRedisClient implements Serializable
     public boolean put(String key, String value, long ttl)
     {
         boolean result=put(key,value);
-        open();
-        redisClient.pexpire(key, ttl);
+        getRedisClient().pexpire(key, ttl);
         close();
         result &= true;
         return result;
@@ -305,8 +346,7 @@ public class ExtendRedisClient implements Serializable
     public boolean clear()
     {
         boolean result;
-        open();
-        result = redisClient.flushAll().contains("OK");
+        result = getRedisClient().flushAll().contains("OK");
         if (searchClients.size()>0)
         {
             for (Client searchClient : searchClients.values())
@@ -340,24 +380,22 @@ public class ExtendRedisClient implements Serializable
     public boolean put(Map<String,String> entries)
     {
         boolean result;
-        open();
         List<String> tmp = new ArrayList<>();        
         for (Entry<String, String> entry : entries.entrySet())
         {
             tmp.add(entry.getKey());
             tmp.add(entry.getValue());
         }                
-        result = redisClient.mset(tmp.toArray(new String[0])).contains("OK");
+        result = getRedisClient().mset(tmp.toArray(new String[0])).contains("OK");
         close();   
         return result;
     }
     public boolean put(Map<String,String> entries, long ttl)
     {
         boolean result = put(entries);
-        open();
         for (String key : entries.keySet())
         {
-            redisClient.pexpire(key, ttl);
+            getRedisClient().pexpire(key, ttl);
         }  
         close();
         return result;
@@ -375,8 +413,7 @@ public class ExtendRedisClient implements Serializable
     public Map<String, String> get(String... keys)
     {
         Map<String,String> result = new HashMap<>();
-        open();
-        List<String> values = redisClient.mget(keys);
+        List<String> values = getRedisClient().mget(keys);
         for (int ix=0; ix<keys.length; ix++)
         {
             result.put(keys[ix], values.get(ix));
@@ -422,7 +459,6 @@ public class ExtendRedisClient implements Serializable
     
     public <T extends RedisSearchDao> T merge(T object)
     {
-        open();
         mergeNoManaged(object);
         close();
         return object;
@@ -436,7 +472,6 @@ public class ExtendRedisClient implements Serializable
         {
             return objects;
         }
-        open();
         for (T object : objects)
         {
             mergeNoManaged(object);
@@ -449,13 +484,12 @@ public class ExtendRedisClient implements Serializable
     
     public <T extends RedisSearchDao> void remove(Class<T> entityClass, String id) throws BusinessException
     {
-        open();
         try
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
             Client searchClient = searchClients.get(entityClass.getSimpleName());
-            redisClient.del(tmp.getKey());
+            getRedisClient().del(tmp.getKey());
             searchClient.deleteDocument(id);
         }
         catch(Exception e) 
@@ -474,9 +508,8 @@ public class ExtendRedisClient implements Serializable
         try 
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
-            open();
             tmp.setOid(id);
-            String json = redisClient.get(tmp.getKey());
+            String json = getRedisClient().get(tmp.getKey());
             result = JsonUtil.transformJsonToObject(json, getTypeReferenceFromClass(entityClass));
         }
         catch (Exception e)
@@ -500,8 +533,6 @@ public class ExtendRedisClient implements Serializable
         List<T> result = new ArrayList<>();
         
         Client searchClient = getSearchClientByClass(entityClass);
-        open();
-        
         Query q = new Query(expression);
         q.limit(0, 500);
         SearchResult res = searchClient.search(q);
@@ -531,8 +562,6 @@ public class ExtendRedisClient implements Serializable
     {
         List<T> result = new ArrayList<>();
         Client searchClient = getSearchClientByClass(entityClass);
-        open();
-        
         SearchResult res = searchClient.search(query);
         
         if (res.totalResults>0)
@@ -571,8 +600,15 @@ public class ExtendRedisClient implements Serializable
     {
       //ouverture du client redis
         if (!searchClients.containsKey(entityClass.getSimpleName()))
-        {            
-            searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), host, port));
+        {
+            if (pool!=null)
+            {
+                searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), pool));
+            }
+            else
+            {
+                searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), host, port));
+            }
             try
             {
                 T instance = entityClass.getDeclaredConstructor().newInstance();
@@ -654,10 +690,10 @@ public class ExtendRedisClient implements Serializable
         }
          
         String json = JsonUtil.transformObjectToJson(object, false);
-        redisClient.set(object.getKey(), json);
+        getRedisClient().set(object.getKey(), json);
         if (object.getTTL()>0)
         {
-            redisClient.pexpire(object.getKey(), object.getTTL());
+            getRedisClient().pexpire(object.getKey(), object.getTTL());
         }
         Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
         indexField.put("oid", object.getOid());
