@@ -488,9 +488,8 @@ public class ExtendRedisClient implements Serializable, AutoCloseable
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
-            Client searchClient = searchClients.get(entityClass.getSimpleName());
             getRedisClient().del(tmp.getKey());
-            searchClient.deleteDocument(id);
+            getSearchClientByClass(entityClass).deleteDocument(id);
         }
         catch(Exception e) 
         {
