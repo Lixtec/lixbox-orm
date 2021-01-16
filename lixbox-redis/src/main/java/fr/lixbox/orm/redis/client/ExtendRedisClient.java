@@ -53,6 +53,7 @@ import io.redisearch.SearchResult;
 import io.redisearch.client.Client.IndexOptions;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 /**
  * Cette classe interface l'univers redis avec l'univers POJO.
@@ -608,6 +609,7 @@ public class ExtendRedisClient implements Serializable, AutoCloseable
             {
                 searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), host, port));
             }
+            
             try
             {
                 T instance = entityClass.getDeclaredConstructor().newInstance();
@@ -616,7 +618,15 @@ public class ExtendRedisClient implements Serializable, AutoCloseable
                 {
                     defaultOptions.setTemporary(instance.getTTL()/1000);
                 }
-                searchClients.get(entityClass.getSimpleName()).createIndex(instance.getIndexSchema(), defaultOptions);
+                try
+                {
+                    searchClients.get(entityClass.getSimpleName()).getInfo();
+                }
+                catch (JedisDataException e)
+                {
+                    LOG.debug(e);
+                    searchClients.get(entityClass.getSimpleName()).createIndex(instance.getIndexSchema(), defaultOptions);
+                }
             }
             catch (Exception e)
             {
