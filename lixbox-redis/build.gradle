@@ -12,7 +12,7 @@ project(':lixbox-redis'){
         
         //redis
         compile group: 'redis.clients', name: 'jedis', version: '3.4.1'
-        compile group: 'com.redislabs', name: 'jredisearch', version: '2.0.0'
+        compile group: 'com.redislabs', name: 'jredisearch', version: '1.8.1'
 
 
         // ================================ Test ================================

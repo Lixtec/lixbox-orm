@@ -158,7 +158,7 @@ public class ExtendRedisClient implements Serializable, AutoCloseable
             {
                 try 
                 {
-                    searchClient.connection().close();
+                    searchClient.close();
                 }
                 catch (Exception e)
                 {
