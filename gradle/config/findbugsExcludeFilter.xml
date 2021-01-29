@@ -17,6 +17,10 @@
     </Match>
     <Match>
         <Class name="fr.lixbox.orm.redis.client.ExtendRedisClient" />
+        <Bug code="RCN" />
+    </Match>
+    <Match>
+        <Class name="fr.lixbox.orm.redis.client.ExtendRedisClient" />
         <Bug code="REC" />
     </Match>
     <Match>
