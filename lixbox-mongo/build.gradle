@@ -5,7 +5,7 @@ project(':lixbox-mongo'){
         api(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
         
         //divers        
-		implementation (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
+		api (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
 
 
         // ================================ Test ================================

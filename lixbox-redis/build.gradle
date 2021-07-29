@@ -11,8 +11,8 @@ project(':lixbox-redis'){
         
         
         //redis
-        implementation group: 'redis.clients', name: 'jedis', version: '3.4.1'
-        implementation group: 'com.redislabs', name: 'jredisearch', version: '1.8.1'
+        api group: 'redis.clients', name: 'jedis', version: '3.4.1'
+        api group: 'com.redislabs', name: 'jredisearch', version: '1.8.1'
 
 
         // ================================ Test ================================
