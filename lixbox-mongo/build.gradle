@@ -1,15 +1,15 @@
 project(':lixbox-mongo'){    
 	dependencies {
         //lixbox
-        compile project(":lixbox-entity")
-        compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
+        api project(":lixbox-entity")
+        api(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
         
         //divers        
-		compile (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
+		implementation (group: 'org.mongodb', name: 'mongodb-driver-sync', version:'3.9.1')
 
 
         // ================================ Test ================================
-        testCompile group: 'junit', name:'junit', version: version_junit
+        testImplementation group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

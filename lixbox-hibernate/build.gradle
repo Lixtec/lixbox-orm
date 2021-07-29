@@ -1,14 +1,14 @@
 project(':lixbox-hibernate'){    
 	dependencies {     
         //lixbox
-		compile project(":lixbox-entity") 
+		api project(":lixbox-entity") 
 
         //divers        
         compileOnly (group: 'org.hibernate', name: 'hibernate-core', version: version_hibernate)
         
 
         // ================================ Test ================================
-        testCompile group: 'junit', name:'junit', version: version_junit
+        testImplementation group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

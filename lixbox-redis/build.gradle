@@ -6,17 +6,17 @@ plugins {
 project(':lixbox-redis'){    
 	dependencies {
         //lixbox
-        compile project(":lixbox-entity")
-        compile(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
+        api project(":lixbox-entity")
+        api(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
         
         
         //redis
-        compile group: 'redis.clients', name: 'jedis', version: '3.4.1'
-        compile group: 'com.redislabs', name: 'jredisearch', version: '1.8.1'
+        implementation group: 'redis.clients', name: 'jedis', version: '3.4.1'
+        implementation group: 'com.redislabs', name: 'jredisearch', version: '1.8.1'
 
 
         // ================================ Test ================================
-        testCompile group: 'junit', name:'junit', version: version_junit
+        testImplementation group: 'junit', name:'junit', version: version_junit
 	}
     
     jar{

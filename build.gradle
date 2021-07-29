@@ -1,6 +1,7 @@
 // Initialisation des plugins
 buildscript {
     repositories {
+        mavenCentral()
         maven {
             url "https://plugins.gradle.org/m2"
         }
@@ -14,17 +15,17 @@ buildscript {
     }
     dependencies {
         classpath (group: 'fr.lixbox', name: 'lixbox-gradle-plugins', version: '1.0.0.4')
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7.1"
-        classpath 'gradle.plugin.com.github.jk1:gradle-license-report:1.3'
-        classpath 'org.owasp:dependency-check-gradle:5.3.2.1'
-        classpath 'org.postgresql:postgresql:42.2.5'
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
+        classpath 'org.owasp:dependency-check-gradle:6.2.2'
+        classpath 'org.postgresql:postgresql:42.2.23'
         classpath 'org.hidetake:gradle-ssh-plugin:2.10.1'
-        classpath('com.google.guava:guava:28.0-jre')
+        classpath('com.google.guava:guava:30.1.1-jre')
     }
 }
 plugins {
-    id "org.ajoberstar.grgit" version "4.1.0"
-    id "com.github.spotbugs" version "3.0.0"
+    id "com.github.jk1.dependency-license-report" version "1.17"
+    id "org.ajoberstar.grgit" version "4.0.2"
+    id "com.github.spotbugs" version "4.0.0"
     id 'maven-publish'
 }
 
@@ -56,10 +57,6 @@ if (config.desc_project.projectSite)
 {
     apply from: 'gradle/project-site.gradle'  
 }
-if (config.desc_project.withRegistry)
-{
-    apply from: 'gradle/with-registry.gradle'  
-}
 if (config.desc_project.withDocker)
 {
     apply from: 'gradle/with-docker.gradle'  
@@ -68,10 +65,10 @@ if (config.desc_project.withQuarkus)
 {
     apply from: 'gradle/with-quarkus.gradle'  
 }
+apply from: 'gradle/project-critical-update.gradle'
 
 import org.ajoberstar.grgit.Credentials
 import  org.ajoberstar.grgit.Person
-import  org.apache.commons.io.IOUtils
 import groovy.io.FileType
 
 sonarqube  {
@@ -103,7 +100,6 @@ allprojects {
     repositories{
         mavenLocal()
         mavenCentral()
-        jcenter()
         maven{
             url jarReposUrl
             credentials{
@@ -145,7 +141,7 @@ sonarQuality{
 
 subprojects {
 	//Plugins	
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'jacoco'
     apply plugin: "com.github.spotbugs"
     apply plugin: 'eclipse-wtp'
@@ -255,118 +251,7 @@ subprojects {
             }
         }
         wtp.component{
-              minusConfigurations << configurations.compileOnly
-        }
-    }
-		
-	sourceSets {
-	  integrationTest {
-	    java{
-          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
-          runtimeClasspath = output + compileClasspath
-	    }
-	  }  
-	  acceptanceTest {
-        java{
-  		  compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
-		  runtimeClasspath = output + compileClasspath
-		}
-	  }	  
-	  smokeTest {
-        java{
-          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
-          runtimeClasspath = output + compileClasspath
-        }
-	  }  
-	  loadTest {
-        java{
-          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
-          runtimeClasspath = output + compileClasspath
-        }
-	  }
-      uiTest {
-        java.srcDir file("src/uiTest/java")
-        resources.srcDir file("src/uiTest/resources")
-        compileClasspath = sourceSets.main.output + configurations.testRuntime
-        runtimeClasspath = output + compileClasspath
-      }
-      wsTest {
-        java{
-          compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.testRuntime
-          runtimeClasspath = output + compileClasspath
-        }
-      }
-	}
-	
-	task integrationTest(type: Test){
-		description = 'Runs the integration tests.'
-		group = 'verification'
-		testClassesDirs = sourceSets.integrationTest.output.classesDirs
-		classpath = sourceSets.integrationTest.runtimeClasspath
-		reports.junitXml.destination = file("$buildDir/integrationTest-results")
-		reports.html.destination = file("$buildDir/reports/integrationTest")
-		forkEvery 1
-		beforeTest { descr ->
-			logger.warn("Starting IntegrationTest ${descr.className} : ${descr.name}")
-		}
-	}
-	check.dependsOn integrationTest
-	
-	task acceptanceTest(type: Test){
-		description = 'Runs the acceptance tests.'
-		group = 'verification'
-		testClassesDirs = sourceSets.acceptanceTest.output.classesDirs
-		classpath = sourceSets.acceptanceTest.runtimeClasspath
-		reports.junitXml.destination = file("$buildDir/acceptanceTest-results")
-		reports.html.destination = file("$buildDir/reports/acceptanceTest")
-		systemProperty 'selenium.host', config.server.hostname
-		systemProperty 'selenium.officialVersion', project.version.toString()
-		forkEvery 1
-		testLogging.showStandardStreams = true
-		beforeTest { 
-			descr -> logger.warn("Starting AcceptanceTest ${descr.className} : ${descr.name}")
-		}
-	}
-
-	task smokeTest(type: Test){
-		description = 'Runs a smoke test that checks if version is deployed to environment'
-		group = 'verification'
-		testClassesDirs = sourceSets.smokeTest.output.classesDirs
-		classpath = sourceSets.smokeTest.runtimeClasspath
-		reports.junitXml.destination = file("$buildDir/smokeTest-results")
-		reports.html.destination = file("$buildDir/reports/smokeTest")
-		forkEvery 1
-		testLogging.showStandardStreams = true
-		beforeTest { descr ->
-			logger.warn("Starting SmokeTest ${descr.className} : ${descr.name}")
-		}
-	}
-
-    task uiTest(type: Test){
-        description = 'Runs a ui test that checks if version is deployed to environment'
-        group = 'verification'
-        testClassesDirs = sourceSets.uiTest.output.classesDirs
-        classpath = sourceSets.uiTest.runtimeClasspath
-        reports.junitXml.destination = file("$buildDir/uiTest-results")
-        reports.html.destination = file("$buildDir/reports/uiTest")
-        forkEvery 1
-        testLogging.showStandardStreams = true
-        beforeTest { descr ->
-            logger.warn("Starting UiTest ${descr.className} : ${descr.name}")
-        }
-    }
-
-    task wsTest(type: Test){
-        description = 'Runs a ws test that checks if version is deployed to environment'
-        group = 'verification'
-        testClassesDirs = sourceSets.wsTest.output.classesDirs
-        classpath = sourceSets.wsTest.runtimeClasspath
-        reports.junitXml.destination = file("$buildDir/wsTest-results")
-        reports.html.destination = file("$buildDir/reports/wsTest")
-        forkEvery 1
-        testLogging.showStandardStreams = true
-        beforeTest { descr ->
-            logger.warn("Starting WSTest ${descr.className} : ${descr.name}")
+              minusConfigurations << configurations.runtimeClasspath
         }
     }
    
@@ -383,15 +268,9 @@ subprojects {
     }
 
     spotbugs {
-        toolVersion = '3.1.12'
+        toolVersion="4.3.0"
         effort = 'max'
-        excludeFilter file('../gradle/config/findbugsExcludeFilter.xml')
-    }
-    tasks.withType(com.github.spotbugs.SpotBugsTask) {
-        reports {
-            xml.enabled false
-            html.enabled true
-        }
+        excludeFilter = file("../gradle/config/findbugsExcludeFilter.xml")
     }
   
     
@@ -416,7 +295,6 @@ subprojects {
 	//Couverture de code {jacoco}
 	task jacocoIntegrationTestReport(type:JacocoReport){
 		sourceSets sourceSets.main
-		executionData integrationTest
 	}
     
     
@@ -444,7 +322,9 @@ subprojects {
         tasks.publish.finalizedBy(tagRelease);
     }
     
-    tasks.eclipse.dependsOn tasks.cleanEclipse    
+    tasks.check.dependsOn tasks.spotbugsMain
+    tasks.check.dependsOn tasks.spotbugsTest
+    tasks.eclipse.dependsOn tasks.cleanEclipse
     tasks.check.dependsOn(tasks.generateLicenseReport);
     tasks.check.dependsOn(tasks.dependencyCheckAnalyze);
 }

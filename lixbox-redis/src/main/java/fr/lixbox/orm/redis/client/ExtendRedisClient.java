@@ -596,9 +596,9 @@ public class ExtendRedisClient implements Serializable
     public <T extends RedisSearchDao> Client getSearchClientByClass(Class<T> entityClass)
     {
       //ouverture du client redis
-        if (!searchClients.containsKey(entityClass.getSimpleName()))
+        if (!searchClients.containsKey(entityClass.getCanonicalName()))
         {
-            searchClients.put(entityClass.getSimpleName() , new io.redisearch.client.Client(entityClass.getSimpleName(), pool));
+            searchClients.put(entityClass.getCanonicalName() , new io.redisearch.client.Client(entityClass.getCanonicalName(), pool));
             
             try
             {
@@ -610,12 +610,12 @@ public class ExtendRedisClient implements Serializable
                 }
                 try
                 {
-                    searchClients.get(entityClass.getSimpleName()).getInfo();
+                    searchClients.get(entityClass.getCanonicalName()).getInfo();
                 }
                 catch (JedisDataException e)
                 {
                     LOG.debug(e);
-                    searchClients.get(entityClass.getSimpleName()).createIndex(instance.getIndexSchema(), defaultOptions);
+                    searchClients.get(entityClass.getCanonicalName()).createIndex(instance.getIndexSchema(), defaultOptions);
                 }
             }
             catch (Exception e)
@@ -623,7 +623,7 @@ public class ExtendRedisClient implements Serializable
                 //existe peut être
             }
         }
-        return searchClients.get(entityClass.getSimpleName());
+        return searchClients.get(entityClass.getCanonicalName());
     }
 
 
