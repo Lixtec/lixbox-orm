@@ -15,3 +15,9 @@ Cette librairie contient des composants facilitant l'utilisation d'Hibernate dan
 ## lixbox-mongo
 
 Cette librairie contient un entityManager pour mongo.
+
+
+## lixbox-redis
+
+Cette librairie contient un entityManager pour redis.
+

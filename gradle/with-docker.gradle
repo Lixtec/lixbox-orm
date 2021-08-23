@@ -1,7 +1,0 @@
-allprojects {
-    task buildAndPushDockerImages(group: "docker", description: "Build and push the docker's images"){
-        doLast {
-            logger.info("This task build and push the prject docker's images");
-        }
-    }
-}
