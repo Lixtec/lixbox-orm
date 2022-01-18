@@ -541,7 +541,10 @@ public class ExtendRedisClient implements Serializable
             List<String> keys = new ArrayList<>();
             for (Document doc : res.docs) 
             {
-                keys.add((String) doc.get("key"));
+                if (doc!=null && StringUtil.isNotEmpty((String) doc.get("key")))
+                {
+                    keys.add((String) doc.get("key"));
+                }
             }
             result = getTypedFromKeys(keys);
         }
@@ -567,7 +570,10 @@ public class ExtendRedisClient implements Serializable
             List<String> keys = new ArrayList<>();
             for (Document doc : res.docs) 
             {
-                keys.add((String) doc.get("key"));
+                if (doc!=null && StringUtil.isNotEmpty((String) doc.get("key")))
+                {
+                    keys.add((String) doc.get("key"));
+                }
             }
             result = getTypedFromKeys(keys);
         }
