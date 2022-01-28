@@ -59,13 +59,13 @@ public class TestExtendRedisClient implements Serializable
     {
         try
         {
-            client = new ExtendRedisClient("lixbox_redis_test", 6480);
+            client = new ExtendRedisClient("main-host", 6480);
             client.ping();
         }
         catch (Exception e)
         {
             client = null;
-            LOG.error("le service redis sur lixbox_redis_test est indisponible");
+            LOG.error("le service redis sur main-host est indisponible");
         }
         try
         {
