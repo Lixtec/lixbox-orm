@@ -28,7 +28,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.lixbox.orm.entity.model.Dao;
-import io.redisearch.Schema;
+import redis.clients.jedis.search.Schema;
 
 /**
  * Cette interface est le contrat de base pour pouvoir utiliser
@@ -40,6 +40,6 @@ public interface RedisSearchDao extends Dao
 {
     @JsonIgnore String getKey();
     @JsonIgnore Schema getIndexSchema();
-    @JsonIgnore Map<String, Object> getIndexFieldValues();
+    @JsonIgnore Map<String, String> getIndexFieldValues();
     @JsonIgnore long getTTL();
 }

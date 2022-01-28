@@ -34,16 +34,21 @@ public class RedisSearchValueSanitizer
     
     
     
-    public static Object sanitizeValue(Object value)
+    public static String sanitizeValue(Object value)
     {
-        if (value instanceof String && StringUtil.isNotEmpty((String)value))
+        String result = "";
+        if (value==null)
         {
-            value = ((String)value).replace('-', '_').replace('@', '_').replace('.', '_');
+            result="";
         }
-        if (value == null)
+        else if (value instanceof String && StringUtil.isNotEmpty((String)value))
         {
-            value = "";
+            result = ((String)value).replace('-', '_').replace('@', '_').replace('.', '_');
         }
-        return value;
+        else
+        {
+            result=value.toString();
+        }
+        return result;
     }
 }

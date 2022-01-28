@@ -77,7 +77,7 @@ public class TestExtendRedisClient implements Serializable
         anniversaire.setDateEvent(DateUtil.parseCalendar("22/09/1982 10:18", "dd/MM/yyyy HH:mm"));
         anniversaire.setLibelle("anniversaire Ludo");
         anniversaire = client.merge(anniversaire);
-        Assert.assertTrue("Impossible d'insérer l'index", anniversaire.getOid()!=null);
+        Assert.assertNotNull("Impossible d'insérer l'index", anniversaire.getOid());
     }
     
     
@@ -89,7 +89,7 @@ public class TestExtendRedisClient implements Serializable
         anniversaire.setDateEvent(DateUtil.parseCalendar("22/09/1982 10:18", "dd/MM/yyyy HH:mm"));
         anniversaire.setLibelle("anniversaire Ludo");
         anniversaire = client.merge(anniversaire);
-        Assert.assertTrue("Impossible d'insérer l'index", anniversaire.getOid()!=null);
+        Assert.assertNotNull("Impossible d'insérer l'index", anniversaire.getOid());
         
         anniversaire = new JNO();
         anniversaire.setOid("230219821820");
@@ -124,7 +124,7 @@ public class TestExtendRedisClient implements Serializable
         anniversaire2.setLibelle("anniversaire Steph");
         
         List<JNO> merged = client.merge(Arrays.asList(anniversaire, anniversaire2));
-        Assert.assertTrue("Nombre incorrect d'elements merges", merged.size()==2);
+        Assert.assertEquals("Nombre incorrect d'elements merges", 2, merged.size());
         
         try 
         {
@@ -144,6 +144,7 @@ public class TestExtendRedisClient implements Serializable
     public void test_findByExpression() 
     {
         JNO anniversaire = new JNO();
+        anniversaire.setOid("220919821010");
         anniversaire.setDateEvent(DateUtil.parseCalendar("22/09/1982 10:18", "dd/MM/yyyy HH:mm"));
         anniversaire.setLibelle("anniversaire Ludo");
         
@@ -154,7 +155,7 @@ public class TestExtendRedisClient implements Serializable
         anniversaire2.setLibelle("anniversaire Steph");
         
         List<JNO> merged = client.merge(Arrays.asList(anniversaire, anniversaire2));
-        Assert.assertTrue("Nombre incorrect d'elements merges", merged.size()==2);
+        Assert.assertEquals("Nombre incorrect d'elements merges", 2, merged.size());
         
         try 
         {

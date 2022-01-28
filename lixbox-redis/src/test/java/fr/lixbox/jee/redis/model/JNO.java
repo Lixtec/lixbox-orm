@@ -37,7 +37,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.entity.model.Dao;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
-import io.redisearch.Schema;
+import redis.clients.jedis.search.Schema;
 
 /**
  * Cette classe est l'entite qui stocke un jour non ouvré.
@@ -127,14 +127,14 @@ public class JNO implements RedisSearchDao, Dao
     
     
     @Override
-    public Map<String, Object> getIndexFieldValues()
+    public Map<String, String> getIndexFieldValues()
     {
-        Map<String, Object> indexFields = new HashMap<>();
+        Map<String, String> indexFields = new HashMap<>();
         indexFields.put("oid", oid);
         indexFields.put("libelle", libelle);
         if (dateEvent!=null)
         {
-            indexFields.put("dateEvent",dateEvent.getTimeInMillis());
+            indexFields.put("dateEvent",dateEvent.getTimeInMillis()+"");
         }
         return indexFields;
     }

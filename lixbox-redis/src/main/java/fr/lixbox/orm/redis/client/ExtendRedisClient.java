@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -45,16 +46,15 @@ import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.entity.model.Dao;
 import fr.lixbox.orm.entity.model.OptimisticDao;
+import fr.lixbox.orm.redis.model.EQuery;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
-import io.redisearch.Client;
-import io.redisearch.Document;
-import io.redisearch.Query;
-import io.redisearch.SearchResult;
-import io.redisearch.client.Client.IndexOptions;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Connection;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.search.Document;
+import redis.clients.jedis.search.IndexDefinition;
+import redis.clients.jedis.search.IndexOptions;
+import redis.clients.jedis.search.SearchResult;
 
 /**
  * Cette classe interface l'univers redis avec l'univers POJO.
@@ -67,15 +67,20 @@ public class ExtendRedisClient implements Serializable
     private static final long serialVersionUID = -3968936170594429132L;
     private static final Log LOG = LogFactory.getLog(ExtendRedisClient.class);
     
-    private transient JedisPool pool;
-    private transient Map<String, Client> searchClients;
+    private static final String NO_ENTITY_FIND_WITH_EXPRESSION_MSG = "No entity find with expression ";
+    private static final String KEY_FIELD = "key";
+    private static final String TYPE_FIELD = "type";
+    
+    private transient GenericObjectPoolConfig<Connection> poolConfig;
+    private String host;
+    private int port;
 
 
-
+    
     //----------- Methodes -----------
     public ExtendRedisClient(String host, int port) 
     {
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig = new GenericObjectPoolConfig<>();
         poolConfig.setMaxTotal(20);
         poolConfig.setTestOnBorrow(true);
         poolConfig.setTestOnReturn(true);
@@ -83,83 +88,24 @@ public class ExtendRedisClient implements Serializable
         poolConfig.setMinIdle(1);
         poolConfig.setTestWhileIdle(true);
         poolConfig.setNumTestsPerEvictionRun(10);
-        poolConfig.setTimeBetweenEvictionRunsMillis(60000);
         poolConfig.setBlockWhenExhausted(false);
         poolConfig.setTestWhileIdle(true);
-        this.pool = new JedisPool(poolConfig, host, port);
-        this.searchClients = new HashMap<>();
+        this.host = host;
+        this.port = port;
     }
-    public ExtendRedisClient(JedisPool pool) 
+    public ExtendRedisClient(GenericObjectPoolConfig<Connection> poolConfig, String host, int port)
     {
-        this.pool = pool;
-        this.searchClients = new HashMap<>();
+        this.poolConfig = poolConfig;
+        this.host = host;
+        this.port = port;
     }
-    
-    
-    
-    public Jedis getPoolResource()
-    {
-        return pool.getResource();
-    }
-    
-    
-    
-    public boolean isOpen()
-    {
-        boolean result = false;
         
-        try
-        {
-            if (pool!=null)
-            {
-                result &= !pool.isClosed();
-            }
-        }
-        catch (Exception e)
-        {
-            result = true;
-        }
-        return result;
-    }
-    
-    
-    
-    public void dispose()
-    {
-        if (searchClients.size()>0)
-        {
-            for (Client searchClient : searchClients.values())
-            {
-                try 
-                {
-                    searchClient.close();
-                }
-                catch (Exception e)
-                {
-                    //pas actif
-                }
-            }
-            searchClients.clear();
-        }
-        if (pool!=null)
-        {
-            pool.close();
-        }
-    }
-    
-    
-    
-    public <T extends RedisSearchDao> boolean createSchema(T objet)
-    {
-        return getSearchClient(objet)!=null;
-    }
-    
     
     
     public List<String> getKeys(String pattern)
     {
         List<String> result = new ArrayList<>(); 
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
             result.addAll(redisClient.keys(internamPattern));
@@ -180,16 +126,9 @@ public class ExtendRedisClient implements Serializable
         String result = "";
         if (key!=null)
         {
-            try (Jedis redisClient = pool.getResource())
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
             {
-                switch (redisClient.type(key))
-                {
-                    case "string":
-                        result = redisClient.get(key);
-                        break;
-                    default:
-                        LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
-                }
+                result = redisClient.get(key);
             }
         }
         return result;
@@ -200,7 +139,7 @@ public class ExtendRedisClient implements Serializable
     public List<String> mget(String[] arrays)
     {
         List<String> result = new ArrayList<>();
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             if (arrays!=null && arrays.length>0)
             {
@@ -223,19 +162,12 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (key!=null)
         {
-            try (Jedis redisClient = pool.getResource())
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
             {
-                switch (redisClient.type(key))
+                if (redisClient.del(key)>0)
                 {
-                    case "string":
-                        if (redisClient.del(key)>0)
-                        {
-                            result = true;
-                        } 
-                        break;
-                    default:
-                        LOG.error("UNSUPPORTED FORMAT "+redisClient.type(key));
-                }
+                    result = true;
+                } 
             }
         }
         return result;
@@ -254,9 +186,28 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (keys!=null)
         {
-            try (Jedis redisClient = pool.getResource())
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
             {
                 if (redisClient.del(keys)>0)
+                {
+                    result = true;
+                }
+            }
+        }
+        return result;
+    }
+    
+    
+    
+    public boolean clearDb()
+    {
+        boolean result = false;
+        List<String> keys = getKeys("*");
+        if (CollectionUtil.isNotEmpty(keys))
+        {
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            {
+                if (redisClient.del(keys.toArray(new String[0]))>0)
                 {
                     result = true;
                 }
@@ -278,7 +229,7 @@ public class ExtendRedisClient implements Serializable
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
         List<String> result  = new ArrayList<>();
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             result.addAll(redisClient.keys(internamPattern));
         }
@@ -315,7 +266,7 @@ public class ExtendRedisClient implements Serializable
         boolean result=false;
         if (!StringUtil.isEmpty(key))
         {
-            try (Jedis redisClient = pool.getResource())
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
             {
                 result = !StringUtil.isEmpty(redisClient.set(key,value));
             }
@@ -325,47 +276,14 @@ public class ExtendRedisClient implements Serializable
     public boolean put(String key, String value, long ttl)
     {
         boolean result=put(key,value);
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             redisClient.pexpire(key, ttl);
         }
         result &= true;
         return result;
     }
-
     
-    /**
-     * Cette methode efface l'ensemble des données du cache.
-     * 
-     * @return true si le nettoyage est ok.
-     */
-    public boolean clearDb()
-    {
-        boolean result;
-        try (Jedis redisClient = pool.getResource())
-        {
-            result = redisClient.flushAll().contains("OK");
-        }
-        if (searchClients.size()>0)
-        {
-            for (Client searchClient : searchClients.values())
-            {
-                try 
-                {
-                    result &= searchClient.dropIndex();
-                    searchClient.close();
-                }
-                catch (Exception e)
-                {
-                    //pas actif
-                }
-            }
-            searchClients.clear();
-        }
-        return result;
-    }
-    
-
     
     
     /**
@@ -384,7 +302,7 @@ public class ExtendRedisClient implements Serializable
             tmp.add(entry.getKey());
             tmp.add(entry.getValue());
         }                
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             result = redisClient.mset(tmp.toArray(new String[0])).contains("OK");
         }
@@ -395,13 +313,14 @@ public class ExtendRedisClient implements Serializable
         boolean result = put(entries);
         for (String key : entries.keySet())
         {
-            try (Jedis redisClient = pool.getResource())
+            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
             {
                 redisClient.pexpire(key, ttl);
             }
         }  
         return result;
     }
+    
     
     
     /**
@@ -415,7 +334,7 @@ public class ExtendRedisClient implements Serializable
     public Map<String, String> get(String... keys)
     {
         Map<String,String> result = new HashMap<>();
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             List<String> values = redisClient.mget(keys);
             for (int ix=0; ix<keys.length; ix++)
@@ -463,7 +382,54 @@ public class ExtendRedisClient implements Serializable
     
     public <T extends RedisSearchDao> T merge(T object)
     {
-        mergeNoManaged(object);
+        if (object==null) {
+            return object;
+        }
+        
+        //creer ou raffraichir le schema
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        {
+            try 
+            {
+                LOG.debug(redisClient.ftInfo(object.getClass().getName()));
+            }
+            catch(JedisDataException jde)
+            {
+                IndexOptions options = IndexOptions.defaultOptions();
+                if (object.getTTL()>0)
+                {
+                    options.setTemporary(object.getTTL()/1000);
+                }
+                IndexDefinition rule = new IndexDefinition().setPrefixes(object.getClass().getName()+":");
+                options.setDefinition(rule);
+                redisClient.ftCreate(object.getClass().getName(),IndexOptions.defaultOptions().setDefinition(rule), object.getIndexSchema());
+            }      
+                        
+            if (object instanceof OptimisticDao)
+            {
+                ((OptimisticDao)object).setVersion(Calendar.getInstance());
+            }
+            if (StringUtil.isEmpty(object.getOid()))
+            {
+                object.setOid(GuidGenerator.getGUID(object));
+            }
+            String json = JsonUtil.transformObjectToJson(object, false);
+
+            redisClient.set(object.getKey(), json);
+            if (object.getTTL()>0)
+            {
+                redisClient.pexpire(object.getKey(), object.getTTL());
+                redisClient.pexpire(object.getOid(), object.getTTL());
+            }
+            Map<String, String> indexField = new HashMap<>(object.getIndexFieldValues());
+            indexField.put("oid", object.getOid());
+            indexField.put(KEY_FIELD, object.getKey());
+            redisClient.hset(object.getClass().getName()+":"+object.getOid(), indexField);
+        }
+        catch(Exception e)
+        {
+            LOG.fatal(e,e);
+        }
         return object;
     }
     
@@ -477,7 +443,7 @@ public class ExtendRedisClient implements Serializable
         }
         for (T object : objects)
         {
-            mergeNoManaged(object);
+            merge(object);
         }
         return objects;
     }
@@ -486,12 +452,11 @@ public class ExtendRedisClient implements Serializable
     
     public <T extends RedisSearchDao> void remove(Class<T> entityClass, String id) throws BusinessException
     {
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
             redisClient.del(tmp.getKey());
-            getSearchClientByClass(entityClass).deleteDocument(id);
         }
         catch(Exception e) 
         {
@@ -505,7 +470,7 @@ public class ExtendRedisClient implements Serializable
         throws BusinessException
     {
         T result = null;
-        try (Jedis redisClient = pool.getResource())
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
@@ -529,103 +494,41 @@ public class ExtendRedisClient implements Serializable
     public <T extends RedisSearchDao> List<T> findByExpression(Class<T> entityClass, String expression) 
         throws BusinessException
     {
-        List<T> result = new ArrayList<>();
-        
-        Client searchClient = getSearchClientByClass(entityClass);
-        Query q = new Query(expression);
-        q.limit(0, 500);
-        SearchResult res = searchClient.search(q);
-        
-        if (res.totalResults>0)
-        {
-            List<String> keys = new ArrayList<>();
-            for (Document doc : res.docs) 
-            {
-                keys.add((String) doc.get("key"));
-            }
-            result = getTypedFromKeys(keys);
-        }
-        if (CollectionUtil.isEmpty(result))
-        {
-            LOG.error("No entity find with expression "+expression);
-            throw new BusinessException("No entity find with expression "+expression);
-        }
-        return result;
+        return findByExpression(entityClass, new EQuery(expression));
     }
 
 
 
-    public <T extends RedisSearchDao> List<T> findByExpression(Class<T> entityClass, Query query) 
+    public <T extends RedisSearchDao> List<T> findByExpression(Class<T> entityClass, EQuery query) 
         throws BusinessException
     {
         List<T> result = new ArrayList<>();
-        Client searchClient = getSearchClientByClass(entityClass);
-        SearchResult res = searchClient.search(query);
         
-        if (res.totalResults>0)
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
         {
-            List<String> keys = new ArrayList<>();
-            for (Document doc : res.docs) 
+            query.limit(0, 500);
+            SearchResult res = redisClient.ftSearch(entityClass.getName(), query);
+            if (res.getTotalResults()>0)
             {
-                keys.add((String) doc.get("key"));
+                List<String> keys = new ArrayList<>();
+                for (Document doc : res.getDocuments()) 
+                {
+                    if (doc.get(TYPE_FIELD)==null || doc.get(TYPE_FIELD).equals(entityClass.getName()))
+                    {
+                        keys.add((String) doc.get(KEY_FIELD));
+                    }
+                }
+                result = getTypedFromKeys(keys);
             }
-            result = getTypedFromKeys(keys);
         }
         if (CollectionUtil.isEmpty(result))
         {
-            LOG.error("No entity find with expression "+query.toString());
-            throw new BusinessException("No entity find with expression "+query.toString());
+            LOG.error(NO_ENTITY_FIND_WITH_EXPRESSION_MSG+query.toString());
+            throw new BusinessException(NO_ENTITY_FIND_WITH_EXPRESSION_MSG+query.toString());
         }
         return result;
     }
     
-    
-    
-    public <T extends RedisSearchDao> Client getSearchClient(T object)
-    {
-        Client result = null;
-        if (object!=null)
-        {
-            result = getSearchClientByClass(object.getClass());
-        }
-        return result;
-    }
-    
-
-    
-    public <T extends RedisSearchDao> Client getSearchClientByClass(Class<T> entityClass)
-    {
-      //ouverture du client redis
-        if (!searchClients.containsKey(entityClass.getCanonicalName()))
-        {
-            searchClients.put(entityClass.getCanonicalName() , new io.redisearch.client.Client(entityClass.getCanonicalName(), pool));
-            
-            try
-            {
-                T instance = entityClass.getDeclaredConstructor().newInstance();
-                IndexOptions defaultOptions = IndexOptions.defaultOptions();
-                if (instance.getTTL()>0)
-                {
-                    defaultOptions.setTemporary(instance.getTTL()/1000);
-                }
-                try
-                {
-                    searchClients.get(entityClass.getCanonicalName()).getInfo();
-                }
-                catch (JedisDataException e)
-                {
-                    LOG.debug(e);
-                    searchClients.get(entityClass.getCanonicalName()).createIndex(instance.getIndexSchema(), defaultOptions);
-                }
-            }
-            catch (Exception e)
-            {
-                //existe peut être
-            }
-        }
-        return searchClients.get(entityClass.getCanonicalName());
-    }
-
 
 
     private <T extends RedisSearchDao> TypeReference<T> getTypeReferenceFromClass(Class<T> classz)
@@ -669,47 +572,5 @@ public class ExtendRedisClient implements Serializable
                 return type;
             }
         };
-    }
-    
-    
-    
-    private <T extends RedisSearchDao> T mergeNoManaged(T object)
-    {
-        if (object==null) {
-            return object;
-        }
-        Client searchClient = getSearchClient(object);
-        if (object instanceof OptimisticDao)
-        {
-            ((OptimisticDao)object).setVersion(Calendar.getInstance());
-        }
-        if (StringUtil.isEmpty(object.getOid()))
-        {
-            object.setOid(GuidGenerator.getGUID(object));
-        }
-         
-        String json = JsonUtil.transformObjectToJson(object, false);
-        try (Jedis redisClient = pool.getResource())
-        {
-            redisClient.set(object.getKey(), json);
-            if (object.getTTL()>0)
-            {
-                redisClient.pexpire(object.getKey(), object.getTTL());
-                redisClient.pexpire(object.getOid(), object.getTTL());
-            }
-        }
-        Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
-        indexField.put("oid", object.getOid());
-        indexField.put("key", object.getKey());
-        
-        if (StringUtil.isEmpty(object.getOid()))
-        {
-            searchClient.addDocument(object.getOid(), indexField);
-        }
-        else
-        {
-            searchClient.replaceDocument(object.getOid(), 1, indexField);
-        }
-        return object;
     }
 }

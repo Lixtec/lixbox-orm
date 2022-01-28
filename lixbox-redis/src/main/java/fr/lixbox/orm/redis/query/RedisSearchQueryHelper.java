@@ -31,7 +31,7 @@ import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
-import io.redisearch.Schema.Field;
+import redis.clients.jedis.search.Schema.Field;
 
 public class RedisSearchQueryHelper
 {
@@ -94,30 +94,15 @@ public class RedisSearchQueryHelper
         {
             if (criteria.getIndexFieldValues().containsKey(index.name))
             {
-                Object value = criteria.getIndexFieldValues().get(index.name);
-                if (value instanceof String && StringUtil.isNotEmpty((String) value) && ((String)value).startsWith("[")  && ((String)value).endsWith("]") && ((String)value).length()>2)
+                String value = criteria.getIndexFieldValues().get(index.name);
+                if (StringUtil.isNotEmpty(value) && value.startsWith("[")  && value.endsWith("]") && value.length()>2)
                 {
-                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
+                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject(value, new TypeReference<Object[]>(){}))));
                     query.append(' ');
                 }
-                else if (value instanceof String && StringUtil.isNotEmpty((String) value) && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
+                else if (StringUtil.isNotEmpty(value) && !(value.startsWith("[")  && value.endsWith("]")))
                 {
-                    query.append(toStringAttribute(index.name, (String) value, startWith));
-                    query.append(' ');
-                }
-                else if (value!=null && value.getClass().isArray())
-                {
-                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
-                    query.append(' ');
-                }
-                else if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
-                {
-                    query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
-                    query.append(' ');
-                }
-                else if (value instanceof Boolean || value instanceof Enum<?>)
-                {
-                    query.append(toStringAttribute(index.name, value.toString()));
+                    query.append(toStringAttribute(index.name, value, startWith));
                     query.append(' ');
                 }
             }
