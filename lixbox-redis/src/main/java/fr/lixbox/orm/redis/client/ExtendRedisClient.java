@@ -215,6 +215,19 @@ public class ExtendRedisClient implements Serializable
         }
         return result;
     }
+    
+    
+    
+    public boolean ping()
+    {
+        boolean result = false;
+        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        {
+            redisClient.keys("*");
+            result = true;
+        }
+        return result;
+    }
       
     
     
@@ -424,6 +437,7 @@ public class ExtendRedisClient implements Serializable
             Map<String, String> indexField = new HashMap<>(object.getIndexFieldValues());
             indexField.put("oid", object.getOid());
             indexField.put(KEY_FIELD, object.getKey());
+            indexField.put(TYPE_FIELD, object.getClass().getName());
             redisClient.hset(object.getClass().getName()+":"+object.getOid(), indexField);
         }
         catch(Exception e)
@@ -513,12 +527,17 @@ public class ExtendRedisClient implements Serializable
                 List<String> keys = new ArrayList<>();
                 for (Document doc : res.getDocuments()) 
                 {
-                    if (doc!=null && doc.get(TYPE_FIELD).equals(entityClass.getName()))
+                    if (doc!=null && 
+                        StringUtil.isNotEmpty((String) doc.get(KEY_FIELD)) && 
+                        doc.get(TYPE_FIELD).equals(entityClass.getName()))
                     {
                         keys.add((String) doc.get(KEY_FIELD));
                     }
                 }
-                result = getTypedFromKeys(keys);
+                if (CollectionUtil.isNotEmpty(keys))
+                {
+                    result = getTypedFromKeys(keys);
+                }
             }
         }
         if (CollectionUtil.isEmpty(result))

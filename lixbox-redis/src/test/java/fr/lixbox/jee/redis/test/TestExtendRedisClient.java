@@ -57,7 +57,28 @@ public class TestExtendRedisClient implements Serializable
     @Before
     public void prepare()
     {
-        client = new ExtendRedisClient("main-host", 6480);
+        try
+        {
+            client = new ExtendRedisClient("lixbox_redis_test", 6480);
+            client.ping();
+        }
+        catch (Exception e)
+        {
+            client = null;
+            LOG.error("le service redis sur lixbox_redis_test est indisponible");
+        }
+        try
+        {
+            if (client == null)
+            {
+                client = new ExtendRedisClient("localhost", 6480);
+                client.ping();
+            }
+        }
+        catch (Exception e)
+        {
+            LOG.error("le service redis sur localhost est indisponible");
+        }
     }
 
     
