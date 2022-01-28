@@ -513,7 +513,7 @@ public class ExtendRedisClient implements Serializable
                 List<String> keys = new ArrayList<>();
                 for (Document doc : res.getDocuments()) 
                 {
-                    if (doc.get(TYPE_FIELD)==null || doc.get(TYPE_FIELD).equals(entityClass.getName()))
+                    if (doc!=null && doc.get(TYPE_FIELD).equals(entityClass.getName()))
                     {
                         keys.add((String) doc.get(KEY_FIELD));
                     }
