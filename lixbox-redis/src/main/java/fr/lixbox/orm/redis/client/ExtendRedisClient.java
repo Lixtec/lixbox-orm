@@ -25,6 +25,8 @@ package fr.lixbox.orm.redis.client;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -574,7 +576,14 @@ public class ExtendRedisClient implements Serializable
         JedisPooled jedis = null;
         if (StringUtil.isNotEmpty(redisUri))
         {
-            jedis = new JedisPooled(poolConfig, redisUri);
+            try
+            {
+                jedis = new JedisPooled(poolConfig, new URI(redisUri));
+            }
+            catch (URISyntaxException e)
+            {
+                LOG.error(e);
+            }
         }
         else
         {
