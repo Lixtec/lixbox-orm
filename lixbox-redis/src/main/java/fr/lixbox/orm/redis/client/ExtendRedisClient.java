@@ -81,16 +81,7 @@ public class ExtendRedisClient implements Serializable
     //----------- Methodes -----------
     public ExtendRedisClient(String host, int port) 
     {
-        poolConfig = new GenericObjectPoolConfig<>();
-        poolConfig.setMaxTotal(20);
-        poolConfig.setTestOnBorrow(true);
-        poolConfig.setTestOnReturn(true);
-        poolConfig.setMaxIdle(20);
-        poolConfig.setMinIdle(1);
-        poolConfig.setTestWhileIdle(true);
-        poolConfig.setNumTestsPerEvictionRun(10);
-        poolConfig.setBlockWhenExhausted(false);
-        poolConfig.setTestWhileIdle(true);
+        getConfigForPool(20);
         this.host = host;
         this.port = port;
     }
@@ -107,18 +98,26 @@ public class ExtendRedisClient implements Serializable
     }
     public ExtendRedisClient(String redisUri) 
     {
+        getConfigForPool(20);
+        this.redisUri = redisUri;
+    }
+    
+    
+    
+    public void getConfigForPool(int size)
+    {
         poolConfig = new GenericObjectPoolConfig<>();
-        poolConfig.setMaxTotal(20);
+        poolConfig.setMaxTotal(size);
         poolConfig.setTestOnBorrow(true);
         poolConfig.setTestOnReturn(true);
-        poolConfig.setMaxIdle(20);
+        poolConfig.setMaxIdle(size);
         poolConfig.setMinIdle(1);
         poolConfig.setTestWhileIdle(true);
         poolConfig.setNumTestsPerEvictionRun(10);
         poolConfig.setBlockWhenExhausted(false);
         poolConfig.setTestWhileIdle(true);
-        this.redisUri = redisUri;
     }
+    
     
     
     public List<String> getKeys(String pattern)
