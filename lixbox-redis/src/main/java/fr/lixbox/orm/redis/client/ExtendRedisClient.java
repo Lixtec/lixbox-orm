@@ -72,8 +72,9 @@ public class ExtendRedisClient implements Serializable
     private static final String TYPE_FIELD = "type";
     
     private transient GenericObjectPoolConfig<Connection> poolConfig;
-    private String host;
-    private int port;
+    private String host="";
+    private int port=0;
+    private String redisUri="";
 
 
     
@@ -99,13 +100,31 @@ public class ExtendRedisClient implements Serializable
         this.host = host;
         this.port = port;
     }
-        
+    public ExtendRedisClient(GenericObjectPoolConfig<Connection> poolConfig, String redisUri)
+    {
+        this.poolConfig = poolConfig;
+        this.redisUri = redisUri;
+    }
+    public ExtendRedisClient(String redisUri) 
+    {
+        poolConfig = new GenericObjectPoolConfig<>();
+        poolConfig.setMaxTotal(20);
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setTestOnReturn(true);
+        poolConfig.setMaxIdle(20);
+        poolConfig.setMinIdle(1);
+        poolConfig.setTestWhileIdle(true);
+        poolConfig.setNumTestsPerEvictionRun(10);
+        poolConfig.setBlockWhenExhausted(false);
+        poolConfig.setTestWhileIdle(true);
+        this.redisUri = redisUri;
+    }
     
     
     public List<String> getKeys(String pattern)
     {
         List<String> result = new ArrayList<>(); 
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
             result.addAll(redisClient.keys(internamPattern));
@@ -126,7 +145,7 @@ public class ExtendRedisClient implements Serializable
         String result = "";
         if (key!=null)
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 result = redisClient.get(key);
             }
@@ -139,7 +158,7 @@ public class ExtendRedisClient implements Serializable
     public List<String> mget(String[] arrays)
     {
         List<String> result = new ArrayList<>();
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             if (arrays!=null && arrays.length>0)
             {
@@ -162,7 +181,7 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (key!=null)
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 if (redisClient.del(key)>0)
                 {
@@ -186,7 +205,7 @@ public class ExtendRedisClient implements Serializable
         boolean result = false;
         if (keys!=null)
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 if (redisClient.del(keys)>0)
                 {
@@ -205,7 +224,7 @@ public class ExtendRedisClient implements Serializable
         List<String> keys = getKeys("*");
         if (CollectionUtil.isNotEmpty(keys))
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 if (redisClient.del(keys.toArray(new String[0]))>0)
                 {
@@ -221,7 +240,7 @@ public class ExtendRedisClient implements Serializable
     public boolean ping()
     {
         boolean result = false;
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             redisClient.keys("*");
             result = true;
@@ -242,7 +261,7 @@ public class ExtendRedisClient implements Serializable
     {
         String internamPattern = StringUtil.isEmpty(pattern)?"*":pattern;
         List<String> result  = new ArrayList<>();
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             result.addAll(redisClient.keys(internamPattern));
         }
@@ -279,7 +298,7 @@ public class ExtendRedisClient implements Serializable
         boolean result=false;
         if (!StringUtil.isEmpty(key))
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 result = !StringUtil.isEmpty(redisClient.set(key,value));
             }
@@ -289,7 +308,7 @@ public class ExtendRedisClient implements Serializable
     public boolean put(String key, String value, long ttl)
     {
         boolean result=put(key,value);
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             redisClient.pexpire(key, ttl);
         }
@@ -315,7 +334,7 @@ public class ExtendRedisClient implements Serializable
             tmp.add(entry.getKey());
             tmp.add(entry.getValue());
         }                
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             result = redisClient.mset(tmp.toArray(new String[0])).contains("OK");
         }
@@ -326,7 +345,7 @@ public class ExtendRedisClient implements Serializable
         boolean result = put(entries);
         for (String key : entries.keySet())
         {
-            try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+            try (JedisPooled redisClient = getJedisPooled())
             {
                 redisClient.pexpire(key, ttl);
             }
@@ -347,7 +366,7 @@ public class ExtendRedisClient implements Serializable
     public Map<String, String> get(String... keys)
     {
         Map<String,String> result = new HashMap<>();
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             List<String> values = redisClient.mget(keys);
             for (int ix=0; ix<keys.length; ix++)
@@ -400,7 +419,7 @@ public class ExtendRedisClient implements Serializable
         }
         
         //creer ou raffraichir le schema
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             try 
             {
@@ -466,7 +485,7 @@ public class ExtendRedisClient implements Serializable
     
     public <T extends RedisSearchDao> void remove(Class<T> entityClass, String id) throws BusinessException
     {
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
@@ -484,7 +503,7 @@ public class ExtendRedisClient implements Serializable
         throws BusinessException
     {
         T result = null;
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             T tmp = entityClass.getDeclaredConstructor().newInstance();
             tmp.setOid(id);
@@ -518,7 +537,7 @@ public class ExtendRedisClient implements Serializable
     {
         List<T> result = new ArrayList<>();
         
-        try (JedisPooled redisClient = new JedisPooled(poolConfig, host, port))
+        try (JedisPooled redisClient = getJedisPooled())
         {
             query.limit(0, 500);
             SearchResult res = redisClient.ftSearch(entityClass.getName(), query);
@@ -550,6 +569,22 @@ public class ExtendRedisClient implements Serializable
     
 
 
+    private JedisPooled getJedisPooled()
+    {
+        JedisPooled jedis = null;
+        if (StringUtil.isNotEmpty(redisUri))
+        {
+            jedis = new JedisPooled(poolConfig, redisUri);
+        }
+        else
+        {
+            jedis = new JedisPooled(poolConfig, host, port);
+        }
+        return jedis;
+    }
+    
+    
+    
     private <T extends RedisSearchDao> TypeReference<T> getTypeReferenceFromClass(Class<T> classz)
     {
         return new TypeReference<T>(){
