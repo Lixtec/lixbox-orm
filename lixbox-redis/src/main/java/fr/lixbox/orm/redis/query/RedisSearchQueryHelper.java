@@ -28,7 +28,6 @@ import java.util.Collection;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import fr.lixbox.common.util.CollectionUtil;
-import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import redis.clients.jedis.search.Schema.Field;
@@ -92,17 +91,32 @@ public class RedisSearchQueryHelper
         StringBuilder query = new StringBuilder("");
         for (Field index : criteria.getIndexSchema().fields)
         {
-            if (criteria.getIndexFieldValues().containsKey(index.name))
+            if (criteria.getIndexFieldValues().containsKey(index.name) && criteria.getIndexFieldValues().get(index.name)!=null)
             {
-                String value = criteria.getIndexFieldValues().get(index.name);
-                if (StringUtil.isNotEmpty(value) && value.startsWith("[")  && value.endsWith("]") && value.length()>2)
+                Object value = criteria.getIndexFieldValues().get(index.name);
+                if (value instanceof String && ((String)value).startsWith("[")  && ((String)value).endsWith("]") && ((String)value).length()>2)
                 {
-                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject(value, new TypeReference<Object[]>(){}))));
+                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
                     query.append(' ');
                 }
-                else if (StringUtil.isNotEmpty(value) && !(value.startsWith("[")  && value.endsWith("]")))
+                else if (value instanceof String && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
                 {
-                    query.append(toStringAttribute(index.name, value, startWith));
+                    query.append(toStringAttribute(index.name, (String) value, startWith));
+                    query.append(' ');
+                }
+                else if (value.getClass().isArray())
+                {
+                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
+                    query.append(' ');
+                }
+                else if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
+                {
+                    query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
+                    query.append(' ');
+                }
+                else
+                {
+                    query.append(toStringAttribute(index.name, value.toString()));
                     query.append(' ');
                 }
             }

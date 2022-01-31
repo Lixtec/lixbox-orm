@@ -127,9 +127,9 @@ public class JNO implements RedisSearchDao, Dao
     
     
     @Override
-    public Map<String, String> getIndexFieldValues()
+    public Map<String, Object> getIndexFieldValues()
     {
-        Map<String, String> indexFields = new HashMap<>();
+        Map<String, Object> indexFields = new HashMap<>();
         indexFields.put("oid", oid);
         indexFields.put("libelle", libelle);
         if (dateEvent!=null)

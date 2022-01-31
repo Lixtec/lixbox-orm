@@ -455,11 +455,12 @@ public class ExtendRedisClient implements Serializable
                 redisClient.pexpire(object.getKey(), object.getTTL());
                 redisClient.pexpire(object.getOid(), object.getTTL());
             }
-            Map<String, String> indexField = new HashMap<>(object.getIndexFieldValues());
+            Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
             indexField.put("oid", object.getOid());
             indexField.put(KEY_FIELD, object.getKey());
             indexField.put(TYPE_FIELD, object.getClass().getName());
-            redisClient.hset(object.getClass().getName()+":"+object.getOid(), indexField);
+            Map<String, String> jsonIndexField = convertObjectMapToJsonMap(indexField);
+            redisClient.hset(object.getClass().getName()+":"+object.getOid(), jsonIndexField);
         }
         catch(Exception e)
         {
@@ -635,5 +636,20 @@ public class ExtendRedisClient implements Serializable
                 return type;
             }
         };
+    }
+    
+    
+    
+    private Map<String, String> convertObjectMapToJsonMap(Map<String, Object> indexFieldValues)
+    {
+        Map<String, String> jsonIndexField = new HashMap<>();
+        if (indexFieldValues!=null)
+        {
+            for (Entry<String, Object> entry : indexFieldValues.entrySet())
+            {
+                jsonIndexField.put(entry.getKey(), JsonUtil.transformObjectToJson(entry.getValue(), false).replace("\"", ""));
+            }
+        }
+        return jsonIndexField;
     }
 }

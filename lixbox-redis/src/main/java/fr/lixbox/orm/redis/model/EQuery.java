@@ -7,12 +7,13 @@ import redis.clients.jedis.search.Query;
  */
 public class EQuery extends Query
 {
-    private String _queryString;
+    private String _queryString = "*";
     
     
     public EQuery() 
     {
         super("*");
+        this._queryString="*";
     }
 
 
@@ -20,6 +21,7 @@ public class EQuery extends Query
     public EQuery(String queryString) 
     {
         super(queryString);
+        this._queryString=queryString;
     }
     
     
