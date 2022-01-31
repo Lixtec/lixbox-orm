@@ -572,7 +572,7 @@ public class ExtendRedisClient implements Serializable
     
 
 
-    private JedisPooled getJedisPooled()
+    public JedisPooled getJedisPooled()
     {
         JedisPooled jedis = null;
         if (StringUtil.isNotEmpty(redisUri))
