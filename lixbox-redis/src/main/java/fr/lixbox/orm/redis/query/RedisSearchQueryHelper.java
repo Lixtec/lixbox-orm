@@ -28,6 +28,7 @@ import java.util.Collection;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import fr.lixbox.common.util.CollectionUtil;
+import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import redis.clients.jedis.search.Schema.Field;
@@ -106,13 +107,19 @@ public class RedisSearchQueryHelper
                 }
                 else if (value.getClass().isArray())
                 {
-                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
-                    query.append(' ');
+                    if (((Object[])value).length>0)
+                    {
+                        query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
+                        query.append(' ');
+                    }
                 }
-                else if (value instanceof Collection<?> && CollectionUtil.isNotEmpty((Collection<?>) value))
+                else if (value instanceof Collection<?>)
                 {
-                    query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
-                    query.append(' ');
+                    if (CollectionUtil.isNotEmpty((Collection<?>) value))
+                    {
+                        query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
+                        query.append(' ');
+                    }
                 }
                 else
                 {
@@ -142,7 +149,11 @@ public class RedisSearchQueryHelper
         query.append(name);
         query.append(':');
         query.append(RedisSearchValueSanitizer.sanitizeValue(value));
-        if (startWith)
+        if (StringUtil.isEmpty(value))
+        {
+            query = query.delete(0, query.length());
+        }
+        else if (startWith)
         {
             query.append('*');
         }
