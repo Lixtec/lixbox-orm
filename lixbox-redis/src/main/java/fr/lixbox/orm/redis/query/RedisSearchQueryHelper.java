@@ -32,6 +32,7 @@ import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import redis.clients.jedis.search.Schema.Field;
+import redis.clients.jedis.search.Schema.FieldType;
 
 public class RedisSearchQueryHelper
 {
@@ -42,10 +43,10 @@ public class RedisSearchQueryHelper
     
     
     
-    public static String toAndMultipurposeAttribute(String attribute, Collection<?> values)
+    public static String toAndMultipurposeField(String attribute, Collection<?> values)
     {
         char andChar = ' ';
-        StringBuilder sbf = new StringBuilder("@"+attribute+":(");
+        StringBuilder sbf = new StringBuilder("(@"+attribute+":");
         for (Object value:values)
         {
             sbf.append(value!=null?RedisSearchValueSanitizer.sanitizeValue(value.toString()):"");
@@ -61,7 +62,7 @@ public class RedisSearchQueryHelper
     
     
     
-    public static String toOrMultipurposeAttribute(String attribute, Collection<?> values)
+    public static String toOrMultipurposeField(String attribute, Collection<?> values)
     {
         char andChar = '|';
         StringBuilder sbf = new StringBuilder("@"+attribute+":(");
@@ -91,40 +92,17 @@ public class RedisSearchQueryHelper
     {
         StringBuilder query = new StringBuilder("");
         for (Field index : criteria.getIndexSchema().fields)
-        {
+        {   
             if (criteria.getIndexFieldValues().containsKey(index.name) && criteria.getIndexFieldValues().get(index.name)!=null)
             {
                 Object value = criteria.getIndexFieldValues().get(index.name);
-                if (value instanceof String && ((String)value).startsWith("[")  && ((String)value).endsWith("]") && ((String)value).length()>2)
+                if (index.type.equals(FieldType.NUMERIC))
                 {
-                    query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
-                    query.append(' ');
+                    query.append(addNumericField(index.name, value));
                 }
-                else if (value instanceof String && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
+                if (index.type.equals(FieldType.TEXT))
                 {
-                    query.append(toStringAttribute(index.name, (String) value, startWith));
-                    query.append(' ');
-                }
-                else if (value.getClass().isArray())
-                {
-                    if (((Object[])value).length>0)
-                    {
-                        query.append(toAndMultipurposeAttribute(index.name, CollectionUtil.convertArrayToList((Object[])value)));
-                        query.append(' ');
-                    }
-                }
-                else if (value instanceof Collection<?>)
-                {
-                    if (CollectionUtil.isNotEmpty((Collection<?>) value))
-                    {
-                        query.append(toAndMultipurposeAttribute(index.name, (Collection<?>) value));
-                        query.append(' ');
-                    }
-                }
-                else
-                {
-                    query.append(toStringAttribute(index.name, value.toString()));
-                    query.append(' ');
+                    query.append(addTextField(index.name, value, startWith));
                 }
             }
         }
@@ -137,13 +115,77 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toStringAttribute(String name, String value)
+    private static String addTextField(String indexName, Object value, boolean startWith)
     {
-        return toStringAttribute(name, value, false);
+        StringBuilder query = new StringBuilder("");
+        if (value instanceof String && ((String)value).startsWith("["))
+        {
+            if (((String)value).endsWith("]") && ((String)value).length()>2)
+            {
+                query.append(toAndMultipurposeField(indexName, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
+                query.append(' ');
+            }
+        }
+        else if (value instanceof String && !(((String)value).startsWith("[")  && ((String)value).endsWith("]")))
+        {
+            query.append(toTextField(indexName, (String) value, startWith));
+            query.append(' ');
+        }
+        else if (value.getClass().isArray())
+        {
+            if (((Object[])value).length>0)
+            {
+                query.append(toAndMultipurposeField(indexName, CollectionUtil.convertArrayToList((Object[])value)));
+                query.append(' ');
+            }
+        }
+        else if (value instanceof Collection<?>)
+        {
+            if (CollectionUtil.isNotEmpty((Collection<?>) value))
+            {
+                query.append(toAndMultipurposeField(indexName, (Collection<?>) value));
+                query.append(' ');
+            }
+        }
+        else
+        {
+            query.append(toTextField(indexName, value.toString()));
+            query.append(' ');
+        }
+        return query.toString();
     }
 
 
-    public static String toStringAttribute(String name, String value, boolean startWith)
+
+    private static String addNumericField(String indexName, Object value)
+    {
+        StringBuilder query = new StringBuilder("@");
+        query.append(indexName);
+        query.append(':');
+        query.append("[");
+        query.append(value);
+        query.append(" ");
+        query.append(value);
+        query.append("]");
+        return query.toString();
+    }
+
+
+
+    public static String toTextField(String name, String value)
+    {
+        return toTextField(name, value, false);
+    }
+
+
+
+    public static String toNumericField(String name, String value)
+    {
+        return addNumericField(name, value);
+    }
+
+
+    public static String toTextField(String name, String value, boolean startWith)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
@@ -162,7 +204,7 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toLowerEqualThanAttribute(String name, long value)
+    public static String toLowerEqualThanField(String name, long value)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
@@ -175,7 +217,7 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toLowerThanAttribute(String name, long value)
+    public static String toLowerThanField(String name, long value)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
@@ -188,7 +230,7 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toGreaterEqualThanAttribute(String name, long value)
+    public static String toGreaterEqualThanField(String name, long value)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
@@ -201,7 +243,7 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toGreaterThanAttribute(String name, long value)
+    public static String toGreaterThanField(String name, long value)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
@@ -214,7 +256,7 @@ public class RedisSearchQueryHelper
 
 
 
-    public static String toBetweenAttribute(String name, long valueMin, long valueMax)
+    public static String toBetweenField(String name, long valueMin, long valueMax)
     {
         StringBuilder query = new StringBuilder("@");
         query.append(name);
