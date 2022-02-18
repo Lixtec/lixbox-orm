@@ -154,7 +154,7 @@ public class JNO implements RedisSearchDao, Dao
         {
             indexFields.put("dateEvent",dateEvent.getTimeInMillis());
         }
-//        indexFields.put("liste1", "POISSON");
+        indexFields.put("liste1", "POISSON");
         return indexFields;
     }
 

@@ -213,10 +213,11 @@ public class TestExtendRedisClient implements Serializable
         
         try 
         {
-            anniversaire2.setDateEvent(null);
-            anniversaire2.setLibelle("anniversaire");
-            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(anniversaire2));
+//            anniversaire2.setDateEvent(null);
+//            anniversaire2.setLibelle("anniversaire");
+//            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(anniversaire2));
 //            List<JNO> jours = client.findByExpression(JNO.class, "@libelle:Steph");
+            List<JNO> jours = client.findByExpression(JNO.class, "@liste1:POISSON");
             Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
         }
         catch (Exception e)
