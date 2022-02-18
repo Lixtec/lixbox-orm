@@ -39,6 +39,7 @@ import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.DateUtil;
 import fr.lixbox.jee.redis.model.JNO;
 import fr.lixbox.orm.redis.client.ExtendRedisClient;
+import fr.lixbox.orm.redis.query.RedisSearchQueryHelper;
 
 
 /**
@@ -181,6 +182,41 @@ public class TestExtendRedisClient implements Serializable
         try 
         {
             List<JNO> jours = client.findByExpression(JNO.class, "Lud*");
+            Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
+        }
+        catch (Exception e)
+        {
+            LOG.fatal(e,e);
+            Assert.fail("Aucun element remonte");
+        }
+    }
+    
+    
+    
+    @Test
+    public void test_findByCriteria() 
+    {
+        JNO anniversaire = new JNO();
+        anniversaire.setOid("220919821010");
+        anniversaire.setDateEvent(DateUtil.parseCalendar("22/09/1982 10:18", "dd/MM/yyyy HH:mm"));
+        anniversaire.setLibelle("anniversaire Ludo");
+        
+        JNO anniversaire2 = new JNO();
+        anniversaire2 = new JNO();
+        anniversaire2.setOid("230219821820");
+        anniversaire2.setDateEvent(DateUtil.parseCalendar("23/02/1982 18:18", "dd/MM/yyyy HH:mm"));
+        anniversaire2.setLibelle("anniversaire Steph");
+        anniversaire2.getListe1().add("POISSON");
+        
+        List<JNO> merged = client.merge(Arrays.asList(anniversaire, anniversaire2));
+        Assert.assertEquals("Nombre incorrect d'elements merges", 2, merged.size());
+        
+        try 
+        {
+            anniversaire2.setDateEvent(null);
+            anniversaire2.setLibelle("anniversaire");
+            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(anniversaire2));
+//            List<JNO> jours = client.findByExpression(JNO.class, "@libelle:Steph");
             Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
         }
         catch (Exception e)

@@ -23,8 +23,10 @@
  ******************************************************************************/
 package fr.lixbox.jee.redis.model;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlTransient;
@@ -37,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.entity.model.Dao;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
+import fr.lixbox.orm.redis.query.RedisSearchValueSanitizer;
 import redis.clients.jedis.search.Schema;
 
 /**
@@ -53,7 +56,7 @@ public class JNO implements RedisSearchDao, Dao
     private String libelle;
     private Calendar dateEvent;
     private boolean estActif = true;
-        
+    private List<String> liste1;
     private String oid;
     
     
@@ -103,9 +106,24 @@ public class JNO implements RedisSearchDao, Dao
     {
         this.estActif = estActif;
     }
+    
+    
 
-
-
+    public List<String> getListe1()
+    {
+        if (liste1==null)
+        {
+            liste1=new ArrayList<>();
+        }
+        return liste1;
+    }
+    public void setListe1(List<String> liste)
+    {
+        this.liste1 = liste;
+    }
+    
+    
+    
     @Override
     public String toString()
     {
@@ -118,9 +136,10 @@ public class JNO implements RedisSearchDao, Dao
     public Schema getIndexSchema()
     {
         return new Schema()
-                .addTextField("oid", 1)
-                .addTextField("libelle", 2)
-                .addTextField("typeJour",1)
+                .addSortableTextField("oid", 1)
+                .addSortableTextField("libelle", 2)
+                .addSortableTextField("typeJour",1)
+                .addSortableTextField("liste1",1)
                 .addNumericField("dateEvent");
     }
     
@@ -130,12 +149,12 @@ public class JNO implements RedisSearchDao, Dao
     public Map<String, Object> getIndexFieldValues()
     {
         Map<String, Object> indexFields = new HashMap<>();
-        indexFields.put("oid", oid);
-        indexFields.put("libelle", libelle);
+        indexFields.put("libelle", RedisSearchValueSanitizer.sanitizeValue(libelle));
         if (dateEvent!=null)
         {
-            indexFields.put("dateEvent",dateEvent.getTimeInMillis()+"");
+            indexFields.put("dateEvent",dateEvent.getTimeInMillis());
         }
+//        indexFields.put("liste1", "POISSON");
         return indexFields;
     }
 
