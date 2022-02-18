@@ -24,6 +24,7 @@
 package fr.lixbox.orm.redis.query;
 
 import fr.lixbox.common.util.StringUtil;
+import fr.lixbox.io.json.JsonUtil;
 
 public class RedisSearchValueSanitizer
 {
@@ -43,12 +44,13 @@ public class RedisSearchValueSanitizer
         }
         else if (value instanceof String && StringUtil.isNotEmpty((String)value))
         {
-            result = ((String)value).replace('-', '_').replace('@', '_').replace('.', '_');
+            result = (String) value;
         }
         else
         {
-            result=value.toString();
+            result = JsonUtil.transformObjectToJson(value, false);
         }
+        result = result.replace('-', '_').replace('@', '_').replace('.', '_');
         return result;
     }
 }
