@@ -71,7 +71,7 @@ public class ExtendRedisClient implements Serializable
     
     private static final String NO_ENTITY_FIND_WITH_EXPRESSION_MSG = "No entity find with expression ";
     private static final String KEY_FIELD = "key";
-    private static final String TYPE_FIELD = "type";
+    private static final String TYPE_FIELD = "type_object";
     
     private transient GenericObjectPoolConfig<Connection> poolConfig;
     private String host="";
