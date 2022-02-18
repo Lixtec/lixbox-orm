@@ -38,7 +38,7 @@ public class RedisSearchValueSanitizer
     public static String sanitizeValue(Object value)
     {
         String result = "";
-        if (value==null)
+        if (value==null || value instanceof String && StringUtil.isEmpty((String)value))
         {
             result="";
         }
