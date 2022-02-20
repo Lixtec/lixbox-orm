@@ -58,10 +58,21 @@ public class JNO implements RedisSearchDao, Dao
     private boolean estActif = true;
     private List<String> liste1;
     private String oid;
+    private TypeJour typeJour;
     
     
     
     // ----------- Methode -----------
+    public TypeJour getTypeJour()
+    {
+        return typeJour;
+    }
+    public void setTypeJour(TypeJour typeJour)
+    {
+        this.typeJour = typeJour;
+    }
+    
+    
     
     @Override
     public String getOid()
@@ -154,7 +165,8 @@ public class JNO implements RedisSearchDao, Dao
         {
             indexFields.put("dateEvent",dateEvent.getTimeInMillis());
         }
-        indexFields.put("liste1", "POISSON");
+        indexFields.put("liste1", RedisSearchValueSanitizer.sanitizeValue(getListe1()));
+        indexFields.put("typeJour", RedisSearchValueSanitizer.sanitizeValue(typeJour));
         return indexFields;
     }
 

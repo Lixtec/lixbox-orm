@@ -38,6 +38,7 @@ import org.junit.Test;
 import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.DateUtil;
 import fr.lixbox.jee.redis.model.JNO;
+import fr.lixbox.jee.redis.model.TypeJour;
 import fr.lixbox.orm.redis.client.ExtendRedisClient;
 import fr.lixbox.orm.redis.query.RedisSearchQueryHelper;
 
@@ -200,6 +201,8 @@ public class TestExtendRedisClient implements Serializable
         anniversaire.setOid("220919821010");
         anniversaire.setDateEvent(DateUtil.parseCalendar("22/09/1982 10:18", "dd/MM/yyyy HH:mm"));
         anniversaire.setLibelle("anniversaire Ludo");
+        anniversaire.getListe1().add("vierge");
+        anniversaire.setTypeJour(TypeJour.test1);
         
         JNO anniversaire2 = new JNO();
         anniversaire2 = new JNO();
@@ -207,17 +210,43 @@ public class TestExtendRedisClient implements Serializable
         anniversaire2.setDateEvent(DateUtil.parseCalendar("23/02/1982 18:18", "dd/MM/yyyy HH:mm"));
         anniversaire2.setLibelle("anniversaire Steph");
         anniversaire2.getListe1().add("POISSON");
+        anniversaire2.getListe1().add("CHAT");
+        anniversaire2.setTypeJour(TypeJour.test2);
         
         List<JNO> merged = client.merge(Arrays.asList(anniversaire, anniversaire2));
         Assert.assertEquals("Nombre incorrect d'elements merges", 2, merged.size());
+
+        try 
+        {
+            JNO search = new JNO();
+            search.setTypeJour(TypeJour.test2);
+            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(search));
+            Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
+        }
+        catch (Exception e)
+        {
+            LOG.fatal(e,e);
+            Assert.fail("Aucun element remonte");
+        }
         
         try 
         {
-//            anniversaire2.setDateEvent(null);
-//            anniversaire2.setLibelle("anniversaire");
-//            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(anniversaire2));
-//            List<JNO> jours = client.findByExpression(JNO.class, "@libelle:Steph");
-            List<JNO> jours = client.findByExpression(JNO.class, "@liste1:POISSON");
+            JNO search = new JNO();
+            search.setLibelle("step*");
+            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(search));
+            Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
+        }
+        catch (Exception e)
+        {
+            LOG.fatal(e,e);
+            Assert.fail("Aucun element remonte");
+        }
+        
+        try 
+        {
+            JNO search = new JNO();
+            search.getListe1().add("chat");
+            List<JNO> jours = client.findByExpression(JNO.class, RedisSearchQueryHelper.toQueryByCriteria(search));
             Assert.assertTrue("Nombre incorrect d'elements remontes", CollectionUtil.isNotEmpty(jours)&&jours.size()==1);
         }
         catch (Exception e)

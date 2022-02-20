@@ -49,6 +49,7 @@ public class RedisSearchValueSanitizer
         else
         {
             result = JsonUtil.transformObjectToJson(value, false);
+            result = result.replace('"',' ');
         }
         result = result.replace('-', '_').replace('@', '_').replace('.', '_');
         return result;

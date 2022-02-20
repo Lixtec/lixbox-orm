@@ -25,11 +25,9 @@ package fr.lixbox.orm.redis.query;
 
 import java.util.Collection;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
+import fr.lixbox.common.helper.StringTokenizer;
 import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.StringUtil;
-import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.redis.model.RedisSearchDao;
 import redis.clients.jedis.search.Schema.Field;
 import redis.clients.jedis.search.Schema.FieldType;
@@ -118,11 +116,14 @@ public class RedisSearchQueryHelper
     private static String addTextField(String indexName, Object value, boolean startWith)
     {
         StringBuilder query = new StringBuilder("");
-        if (value instanceof String && ((String)value).startsWith("["))
+        if (value instanceof String && ((String)value).startsWith("[") && ((String)value).endsWith("]"))
         {
-            if (((String)value).endsWith("]") && ((String)value).length()>2)
+            if (((String)value).length()>2)
             {
-                query.append(toAndMultipurposeField(indexName, CollectionUtil.convertArrayToList(JsonUtil.transformJsonToObject((String)value, new TypeReference<Object[]>(){}))));
+                String sValue = (String) value;
+                sValue = sValue.replace("[ ","").replace(" ]", "");
+                StringTokenizer tokenizer = new StringTokenizer(sValue, " ");
+                query.append(toAndMultipurposeField(indexName, tokenizer.getTokens()));
                 query.append(' ');
             }
         }
