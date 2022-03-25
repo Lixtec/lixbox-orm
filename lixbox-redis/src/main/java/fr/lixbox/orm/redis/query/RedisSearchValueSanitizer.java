@@ -23,6 +23,10 @@
  ******************************************************************************/
 package fr.lixbox.orm.redis.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.lixbox.common.helper.StringTokenizer;
 import fr.lixbox.common.util.StringUtil;
 import fr.lixbox.io.json.JsonUtil;
 
@@ -31,6 +35,18 @@ public class RedisSearchValueSanitizer
     private RedisSearchValueSanitizer()
     {
         //singleton
+    }
+    
+
+    
+    public static  List<String> restoreFieldValueToList(Object oValues)
+    {
+        List<String> arrays = new ArrayList<String>();
+        String values = (String) oValues;
+        values = values.replaceAll("\\[ ", "").replaceAll(" \\]", "").replaceAll(" , ", ",");
+        StringTokenizer tokenizer = new StringTokenizer(values, ",");
+        arrays.addAll(tokenizer.getTokens());
+        return arrays;
     }
     
     
