@@ -11,7 +11,7 @@ project(':lixbox-redis'){
         
         
         //redis
-        api group: 'redis.clients', name: 'jedis', version: '4.1.0'
+        api group: 'redis.clients', name: 'jedis', version: '4.2.3'
 
 
         // ================================ Test ================================

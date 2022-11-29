@@ -7,13 +7,13 @@ buildscript {
     }
     dependencies {
         classpath (group: 'fr.lixbox.plugins', name: 'lixbox-gradle-plugins', version: '11.1.0.19')
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
         classpath 'org.owasp:dependency-check-gradle:6.2.2'
         classpath 'org.postgresql:postgresql:42.2.23'
         classpath('com.google.guava:guava:30.1.1-jre')
     }
 }
 plugins {
+    id "org.sonarqube" version "3.5.0.2730"
     id "com.github.jk1.dependency-license-report" version "1.16"
     id "org.ajoberstar.grgit" version "4.0.2"
     id "com.github.spotbugs" version "4.7.2"

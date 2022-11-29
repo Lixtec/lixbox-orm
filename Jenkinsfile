@@ -67,7 +67,7 @@ withCredentials([usernamePassword(credentialsId: 'e1529c62-f3ec-4b12-bbad-2a352f
 	    stage('Code review & report'){
 	        echo 'Code review & report started'
 	        try{
-	            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew  -Djenkins.login=${JENKINS_LOGIN} -Djenkins.password=${JENKINS_PWD}  -x test --stacktrace sonarqube checkSonarQualityGate'
+	            sh 'export SOURCE_BUILD_NUMBER=${BUILD_NUMBER} && ${WORKSPACE}/gradlew  -Djenkins.login=${JENKINS_LOGIN} -Djenkins.password=${JENKINS_PWD}  -x test --stacktrace sonar checkSonarQualityGate'
 	        }
 	        catch (e){
 	            onFailed(e);

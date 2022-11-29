@@ -41,9 +41,9 @@ public class RedisSearchValueSanitizer
     
     public static  List<String> restoreFieldValueToList(Object oValues)
     {
-        List<String> arrays = new ArrayList<String>();
+        List<String> arrays = new ArrayList<>();
         String values = (String) oValues;
-        values = values.replaceAll("\\[ ", "").replaceAll(" \\]", "").replaceAll(" , ", ",");
+        values = values.replace("\\[ ", "").replace(" \\]", "").replace(" , ", ",");
         StringTokenizer tokenizer = new StringTokenizer(values, ",");
         arrays.addAll(tokenizer.getTokens());
         return arrays;
