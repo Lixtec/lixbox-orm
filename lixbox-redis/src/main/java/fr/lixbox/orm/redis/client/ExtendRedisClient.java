@@ -542,7 +542,6 @@ public class ExtendRedisClient implements Serializable
         
         try (JedisPooled redisClient = getJedisPooled())
         {
-            query.limit(0, 500);
             SearchResult res = redisClient.ftSearch(entityClass.getName(), query);
             if (res.getTotalResults()>0)
             {
@@ -564,7 +563,7 @@ public class ExtendRedisClient implements Serializable
         }
         if (CollectionUtil.isEmpty(result))
         {
-            LOG.error(NO_ENTITY_FIND_WITH_EXPRESSION_MSG+query.toString());
+            LOG.warn(NO_ENTITY_FIND_WITH_EXPRESSION_MSG+query.toString());
             throw new BusinessException(NO_ENTITY_FIND_WITH_EXPRESSION_MSG+query.toString());
         }
         return result;

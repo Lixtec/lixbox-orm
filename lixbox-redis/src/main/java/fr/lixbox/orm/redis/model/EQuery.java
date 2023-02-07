@@ -14,6 +14,7 @@ public class EQuery extends Query
     {
         super("*");
         this._queryString="*";
+        this.limit(0, 500);
     }
 
 
@@ -22,6 +23,7 @@ public class EQuery extends Query
     {
         super(queryString);
         this._queryString=queryString;
+        this.limit(0, 500);
     }
     
     
