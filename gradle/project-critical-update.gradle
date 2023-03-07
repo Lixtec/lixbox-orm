@@ -20,6 +20,12 @@ subprojects {
                     println "correction cpe:2.3:a:google:gson:2.8.7"
                     details.useVersion '2.10'
             }
+            if (details.requested.group.contains('com.fasterxml.jackson.core') && 
+                    details.requested.name.contains('jackson-core') &&
+                    details.requested.version.contains('2.14.1')) {
+                    println "correction CVE-2022-45688 CWE-787 Out-of-bounds Write"
+                    details.useVersion '2.14.2'
+            }
         }
     }
 }

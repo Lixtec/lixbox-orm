@@ -43,7 +43,7 @@ public class RedisSearchValueSanitizer
     {
         List<String> arrays = new ArrayList<>();
         String values = (String) oValues;
-        values = values.replace("\\[ ", "").replace(" \\]", "").replace(" , ", ",");
+        values = values.replace("[ ", "").replace(" ]", "").replace("\\[ ", "").replace(" \\]", "").replace(" , ", ",");
         StringTokenizer tokenizer = new StringTokenizer(values, ",");
         arrays.addAll(tokenizer.getTokens());
         return arrays;

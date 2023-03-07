@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
-
+  <suppress>
+      <notes><![CDATA[Suppression de la cve incorrecte sur commons-net]]></notes>
+      <cve>CVE-2021-37533</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[Suppression de la cve incorrecte sur hutool-json v5.8.10]]></notes>
+    <cve>CVE-2022-45688</cve>
+  </suppress>
 </suppressions>
