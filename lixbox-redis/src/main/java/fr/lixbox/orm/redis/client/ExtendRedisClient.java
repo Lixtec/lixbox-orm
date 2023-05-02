@@ -436,7 +436,7 @@ public class ExtendRedisClient implements Serializable
                 }
                 IndexDefinition rule = new IndexDefinition().setPrefixes(object.getClass().getName()+":");
                 options.setDefinition(rule);
-                redisClient.ftCreate(object.getClass().getName(),IndexOptions.defaultOptions().setDefinition(rule), object.getIndexSchema());
+                redisClient.ftCreate(object.getClass().getName(), options, object.getIndexSchema());
             }      
                         
             if (object instanceof OptimisticDao)
