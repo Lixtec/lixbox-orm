@@ -448,19 +448,18 @@ public class ExtendRedisClient implements Serializable
                 object.setOid(GuidGenerator.getGUID(object));
             }
             String json = JsonUtil.transformObjectToJson(object, false);
-
             redisClient.set(object.getKey(), json);
-            if (object.getTTL()>0)
-            {
-                redisClient.pexpire(object.getKey(), object.getTTL());
-                redisClient.pexpire(object.getOid(), object.getTTL());
-            }
             Map<String, Object> indexField = new HashMap<>(object.getIndexFieldValues());
             indexField.put("oid", object.getOid());
             indexField.put(KEY_FIELD, object.getKey());
             indexField.put(TYPE_FIELD, object.getClass().getName());
             Map<String, String> jsonIndexField = convertObjectMapToJsonMap(indexField);
             redisClient.hset(object.getClass().getName()+":"+object.getOid(), jsonIndexField);
+            if (object.getTTL()>0)
+            {
+                redisClient.pexpire(object.getKey(), object.getTTL());
+                redisClient.pexpire(object.getClass().getCanonicalName()+":"+object.getOid(), object.getTTL());
+            }
         }
         catch(Exception e)
         {
