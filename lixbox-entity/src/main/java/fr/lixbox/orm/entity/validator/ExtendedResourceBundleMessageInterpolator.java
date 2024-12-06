@@ -23,7 +23,6 @@
  ******************************************************************************/
 package fr.lixbox.orm.entity.validator;
 
-import java.security.AccessController;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -34,13 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.validation.MessageInterpolator;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.validator.internal.util.privilegedactions.GetClassLoader;
 import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
+
+import jakarta.validation.MessageInterpolator;
 
 
 /**
@@ -217,10 +216,8 @@ public class ExtendedResourceBundleMessageInterpolator implements MessageInterpo
 	 */
 	private ResourceBundle getFileBasedResourceBundle(Locale locale) {
 		ResourceBundle rb = null;
-		boolean isSecured = System.getSecurityManager() != null;
 		GetClassLoader action = GetClassLoader.fromContext();
-		ClassLoader classLoader = isSecured ? AccessController
-				.doPrivileged(action) : action.run();
+		ClassLoader classLoader = action.run();
 
 		if (classLoader != null) {
 			rb = loadBundle(classLoader, locale, USER_VALIDATION_MESSAGES
@@ -228,8 +225,7 @@ public class ExtendedResourceBundleMessageInterpolator implements MessageInterpo
 		}
 		if (rb == null) {
 			action = GetClassLoader.fromClass(ResourceBundleMessageInterpolator.class);
-			classLoader = isSecured ? AccessController.doPrivileged(action)
-					: action.run();
+			classLoader = action.run();
 			rb = loadBundle(classLoader, locale, USER_VALIDATION_MESSAGES
 					+ " not found by validator classloader");
 		}

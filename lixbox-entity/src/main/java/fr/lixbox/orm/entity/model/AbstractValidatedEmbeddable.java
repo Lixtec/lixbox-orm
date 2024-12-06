@@ -27,15 +27,14 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
 import fr.lixbox.common.model.ConteneurEvenement;
 import fr.lixbox.common.model.Contexte;
 import fr.lixbox.common.model.enumeration.NiveauEvenement;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 /**
  * Cette classe represente un objet embarcable generique.
  * 

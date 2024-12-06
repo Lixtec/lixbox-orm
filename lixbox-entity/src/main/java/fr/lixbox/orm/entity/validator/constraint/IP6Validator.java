@@ -23,10 +23,9 @@
  ******************************************************************************/
 package fr.lixbox.orm.entity.validator.constraint;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import fr.lixbox.common.util.ValidatorUtil;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * Ce validateur permet de valider une adresse IPv4 de la forme 0.0.0.0

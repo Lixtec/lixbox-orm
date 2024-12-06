@@ -23,13 +23,12 @@
  ******************************************************************************/
 package fr.lixbox.orm.entity.validator.constraint;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import fr.lixbox.common.exceptions.BusinessException;
 import fr.lixbox.common.model.ConteneurEvenement;
 import fr.lixbox.common.model.Evenement;
 import fr.lixbox.orm.entity.model.ValidatedDao;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * Ce validateur invoque la validation de l'entite
