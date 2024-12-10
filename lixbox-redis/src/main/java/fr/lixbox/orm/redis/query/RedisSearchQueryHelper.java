@@ -86,30 +86,37 @@ public class RedisSearchQueryHelper
 
     
     
-    public static String toQueryByCriteria(RedisSearchDao criteria, boolean startWith)
-    {
-        StringBuilder query = new StringBuilder("");
-        for (Field index : criteria.getIndexSchema().fields)
-        {   
-            if (criteria.getIndexFieldValues().containsKey(index.name) && criteria.getIndexFieldValues().get(index.name)!=null)
-            {
-                Object value = criteria.getIndexFieldValues().get(index.name);
-                if (index.type.equals(FieldType.NUMERIC))
-                {
-                    query.append(addNumericField(index.name, value));
-                }
-                if (index.type.equals(FieldType.TEXT))
-                {
-                    query.append(addTextField(index.name, value, startWith));
-                }
-            }
-        }
-        if (query.length()==0)
-        {
-            query.append('*');
-        }
-        return query.toString();
-    }
+	public static String toQueryByCriteria(RedisSearchDao criteria, boolean startWith) {
+		StringBuilder query = new StringBuilder("");
+
+		for (Field index : criteria.getIndexSchema().fields) {
+			String fieldName = index.getName().getName(); // Utilisation du getter
+			FieldType fieldType = index.getType(); // Getter pour le type du champ
+
+			// Vérification de la présence de la valeur pour ce champ
+			if (criteria.getIndexFieldValues().containsKey(fieldName)
+					&& criteria.getIndexFieldValues().get(fieldName) != null) {
+
+				Object value = criteria.getIndexFieldValues().get(fieldName);
+
+				// Ajout des champs numériques
+				if (FieldType.NUMERIC.equals(fieldType)) {
+					query.append(addNumericField(fieldName, value));
+				}
+				// Ajout des champs texte
+				else if (FieldType.TEXT.equals(fieldType)) {
+					query.append(addTextField(fieldName, value, startWith));
+				}
+			}
+		}
+
+		// Si aucun champ n'a été ajouté, utiliser le wildcard
+		if (query.length() == 0) {
+			query.append('*');
+		}
+
+		return query.toString();
+	}
 
 
 

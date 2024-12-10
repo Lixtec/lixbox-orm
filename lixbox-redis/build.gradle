@@ -11,7 +11,7 @@ project(':lixbox-redis'){
         
         
         //redis
-        api group: 'redis.clients', name: 'jedis', version: '4.2.3'
+        api group: 'redis.clients', name: 'jedis', version: '5.2.0'
 
 
         // ================================ Test ================================
@@ -48,7 +48,7 @@ project(':lixbox-redis'){
 
     //initialisation du conteneur REDIS pour les tests
     task pullRedisImage(type: DockerPullImage, description: "Pull redis image"){
-       image='redislabs/redisearch:latest'
+       image='redis/redis-stack:7.4.0-v1'
     }
     task removeRedisContainer(type: DockerRemoveContainer, description: "Remove redis container"){
         targetContainerId 'lixbox_redis_test'
@@ -58,7 +58,7 @@ project(':lixbox-redis'){
         }
     }
     task createRedisContainer(type: DockerCreateContainer, description: "Create a redis container for test") {
-        targetImageId 'redislabs/redisearch:latest'
+        targetImageId 'redis/redis-stack:7.4.0-v1'
         containerName = 'lixbox_redis_test'
         hostConfig.autoRemove = true
         hostConfig.portBindings = ['6480:6379']

@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -174,7 +172,6 @@ public class JNO implements RedisSearchDao, Dao
     
 
     @JsonIgnore
-    @XmlTransient
     public String getKey()
     {
         return "LIXBOX:OBJECT:"+this.getClass().getName()+":"+oid;
