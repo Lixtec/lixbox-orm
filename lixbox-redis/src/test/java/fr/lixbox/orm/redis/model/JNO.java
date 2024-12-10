@@ -173,7 +173,16 @@ public class JNO implements RedisSearchDao, Dao
     @JsonIgnore
     public String getKey()
     {
-        return "LIXBOX:OBJECT:"+this.getClass().getName()+":"+oid;
+        return getIndex()+":"+oid;
+    }
+
+    
+    
+
+    @JsonIgnore
+    public String getIndex()
+    {
+        return "LIXBOX:OBJECT:"+this.getClass().getName();
     }
     
     

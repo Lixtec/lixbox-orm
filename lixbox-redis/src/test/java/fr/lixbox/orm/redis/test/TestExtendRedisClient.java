@@ -88,7 +88,7 @@ public class TestExtendRedisClient implements Serializable
     @After
     public void finish() throws IOException
     {
-      client.clearDb();
+    	client.clearDb();
     }
     
     

@@ -21,20 +21,22 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.orm.redis.model;
+package fr.lixbox.orm.entity.model;
+
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fr.lixbox.orm.entity.model.NoSqlSearchDao;
-import redis.clients.jedis.search.Schema;
-
 /**
  * Cette interface est le contrat de base pour pouvoir utiliser
- * la recherche avancee de Redis
+ * la recherche avancee d'elasticSeach
  * 
  * @author ludovic.terral
  */
-public interface RedisSearchDao extends NoSqlSearchDao
+public interface NoSqlSearchDao extends Dao
 {
-    @JsonIgnore Schema getIndexSchema();
+    @JsonIgnore String getIndex();
+    @JsonIgnore String getKey();
+    @JsonIgnore Map<String, Object> getIndexFieldValues();
+    @JsonIgnore long getTTL();
 }
