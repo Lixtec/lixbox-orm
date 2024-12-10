@@ -2,8 +2,8 @@ desc_project{
     type="library"
     version{
         majorVersion=11
-        mediumVersion=1
-        minorVersion=2
+        mediumVersion=2
+        minorVersion=0
     }
     artefact{
         group="fr.lixbox.lixbox-orm"
