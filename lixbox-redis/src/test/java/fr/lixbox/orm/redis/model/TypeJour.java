@@ -1,4 +1,4 @@
-package fr.lixbox.jee.redis.model;
+package fr.lixbox.orm.redis.model;
 
 public enum TypeJour
 {

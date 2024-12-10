@@ -21,7 +21,7 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.jee.redis.test;
+package fr.lixbox.orm.redis.test;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,9 +37,9 @@ import org.junit.Test;
 
 import fr.lixbox.common.util.CollectionUtil;
 import fr.lixbox.common.util.DateUtil;
-import fr.lixbox.jee.redis.model.JNO;
-import fr.lixbox.jee.redis.model.TypeJour;
 import fr.lixbox.orm.redis.client.ExtendRedisClient;
+import fr.lixbox.orm.redis.model.JNO;
+import fr.lixbox.orm.redis.model.TypeJour;
 import fr.lixbox.orm.redis.query.RedisSearchQueryHelper;
 
 

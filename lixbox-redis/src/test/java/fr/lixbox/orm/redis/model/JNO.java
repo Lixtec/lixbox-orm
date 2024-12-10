@@ -21,7 +21,7 @@
  *   @AUTHOR Lixbox-team
  *
  ******************************************************************************/
-package fr.lixbox.jee.redis.model;
+package fr.lixbox.orm.redis.model;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -36,7 +36,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.lixbox.io.json.JsonUtil;
 import fr.lixbox.orm.entity.model.Dao;
-import fr.lixbox.orm.redis.model.RedisSearchDao;
 import fr.lixbox.orm.redis.query.RedisSearchValueSanitizer;
 import redis.clients.jedis.search.Schema;
 
