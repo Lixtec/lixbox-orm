@@ -7,9 +7,9 @@ Ce dépôt contient le code de la librairie lixbox-jee.
 Cette librairie contient le nécessaire pour faire manipuler efficacement les entités persistable en base de données.
 
 
-## lixbox-hibernate
+## lixbox-elasticSearch
 
-Cette librairie contient des composants facilitant l'utilisation d'Hibernate dans un environnement JEE.
+Cette librairie contient des composants facilitant l'utilisation d'elasticSearch
 
 
 ## lixbox-mongo
