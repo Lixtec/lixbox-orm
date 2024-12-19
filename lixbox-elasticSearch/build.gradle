@@ -1,0 +1,81 @@
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+plugins {
+    id 'com.bmuschko.docker-remote-api' version '6.1.3'
+}
+project(':lixbox-elasticSearch'){    
+	dependencies {
+        //lixbox
+        api project(":lixbox-entity")
+        api(group: 'fr.lixbox.lixbox-io', name: 'lixbox-json', version: version_lixbox_io) 
+        
+        
+        //elastic search
+    	implementation group: 'co.elastic.clients', name: 'elasticsearch-java', version: '8.16.1'
+
+
+        // ================================ Test ================================
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.11.3'
+	}
+    
+    jar{
+       manifest {
+            attributes(
+                "Implementation-Title": project.name, 
+                "Implementation-Version": archiveVersion, 
+                "Implementation-Timestamp": new Date()
+            )
+        }
+    }
+    
+    eclipse{
+        wtp{
+            facet {
+                facet name: 'jst.cdi', version: '2.0'
+                facet name: 'jst.utility', version: '1.0'
+            }
+        }
+    }
+	
+	sonarqube {
+		properties {
+           property "sonar.projectKey", "${config.desc_project.artefact.group}.${rootProject.name}:${project.name}"
+           property "sonar.projectName", "${project.name}"
+		   property "sonar.sources","src/main"
+		   property "sonar.tests","src/test"
+        }
+	}	
+
+    //initialisation du conteneur REDIS pour les tests
+    task pullRedisImage(type: DockerPullImage, description: "Pull redis image"){
+       image='redislabs/redisearch:latest'
+    }
+    task removeRedisContainer(type: DockerRemoveContainer, description: "Remove redis container"){
+        targetContainerId 'lixbox_redis_test'
+        onError { exception ->
+            if (!(exception.message.contains('No such container')||exception.message.contains('is already in progress')))
+                throw exception
+        }
+    }
+    task createRedisContainer(type: DockerCreateContainer, description: "Create a redis container for test") {
+        targetImageId 'redislabs/redisearch:latest'
+        containerName = 'lixbox_redis_test'
+        hostConfig.autoRemove = true
+        hostConfig.portBindings = ['6480:6379']
+    }
+    task startRedisContainer(type: DockerStartContainer, group: "docker", description: "start redis container") {
+        targetContainerId "lixbox_redis_test"
+    }   
+    task stopRedisContainer(type: DockerStopContainer, group: "docker", description: "stop redis container") {
+        targetContainerId "lixbox_redis_test"        
+        onError { exception ->
+            if (!exception.message.contains('No such container'))
+                throw exception
+        }
+    }
+    tasks.clean.dependsOn(tasks.pullRedisImage);
+    tasks.createRedisContainer.dependsOn(tasks.removeRedisContainer);
+    tasks.removeRedisContainer.dependsOn(tasks.stopRedisContainer);
+    tasks.startRedisContainer.dependsOn(tasks.createRedisContainer);
+    tasks.test.dependsOn(tasks.startRedisContainer);
+}
