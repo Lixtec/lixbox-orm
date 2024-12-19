@@ -95,7 +95,7 @@ class TestElasticSearchClient
         //oracle
         try 
         {
-            assertTrue(StringUtil.isNotEmpty(elasticSearchClient.merge( dataflowInfo)), "L'enregistrement du DataflowInfoa échoué dans ES" );
+            assertTrue(StringUtil.isNotEmpty(elasticSearchClient.merge( dataflowInfo).getOid()), "L'enregistrement du DataflowInfo a échoué dans ES" );
         } 
         catch (Exception e) 
         {
@@ -129,7 +129,7 @@ class TestElasticSearchClient
         //oracle
         try 
         {
-            assertTrue(StringUtil.isNotEmpty(elasticSearchClient.merge( dataflowContainer)), "L'enregistrement du DataflowContainer a échoué dans ES" );
+            assertTrue(StringUtil.isNotEmpty(elasticSearchClient.merge(dataflowContainer).getOid()), "L'enregistrement du DataflowContainer a échoué dans ES" );
         } 
         catch (Exception e) 
         {
@@ -161,7 +161,7 @@ class TestElasticSearchClient
         dataflow.setBody(DEFAULT_BODY_CONTENT);
         try 
         {
-            dataflow.getMetadatas().put("esId", elasticSearchClient.merge( dataflow));
+            dataflow.getMetadatas().put("esId", elasticSearchClient.merge(dataflow).getOid());
             assertTrue(StringUtil.isNotEmpty(dataflow.getMetadatas().get("esId")), "L'enregistrement du DataflowInfoa échoué dans ES" );
         } 
         catch (Exception e) 
@@ -206,7 +206,7 @@ class TestElasticSearchClient
         dataflowInfo.setMetadatas(metadatas);
         try 
         {
-            dataflowInfo.getMetadatas().put("esId", elasticSearchClient.merge( dataflowInfo));
+            dataflowInfo.getMetadatas().put("esId", elasticSearchClient.merge(dataflowInfo).getOid());
             assertTrue(StringUtil.isNotEmpty(dataflowInfo.getMetadatas().get("esId")), "L'enregistrement du DataflowInfoa échoué dans ES" );
         } 
         catch (Exception e) 
@@ -250,7 +250,7 @@ class TestElasticSearchClient
         dataflowInfo.setMetadatas(metadatas);
         try 
         {
-            dataflowInfo.getMetadatas().put("esId", elasticSearchClient.merge( dataflowInfo));
+            dataflowInfo.getMetadatas().put("esId", elasticSearchClient.merge(dataflowInfo).getOid());
             assertTrue(StringUtil.isNotEmpty(dataflowInfo.getMetadatas().get("esId")), "L'enregistrement du DataflowInfoa échoué dans ES" );
         } 
         catch (Exception e) 

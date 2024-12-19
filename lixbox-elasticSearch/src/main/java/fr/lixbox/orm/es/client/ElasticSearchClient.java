@@ -119,7 +119,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.info("Fermeture du client en cours : "+client.toString());
+            LOG.debug("Fermeture du client en cours : "+client.toString());
             client._transport().close();
         }
         return object;
@@ -215,7 +215,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.info("Fermeture du client en cours : "+client.toString());
+            LOG.debug("Fermeture du client en cours : "+client.toString());
             client._transport().close();
         }
         return dao;
@@ -261,7 +261,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.info("Fermeture du client en cours : "+client.toString());
+            LOG.debug("Fermeture du client en cours : "+client.toString());
             client._transport().close();
         }
         return daos;
@@ -298,7 +298,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.info("Fermeture du client en cours : "+client.toString());
+            LOG.debug("Fermeture du client en cours : "+client.toString());
             client._transport().close();
         }
         return daos;
