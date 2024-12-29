@@ -15,7 +15,7 @@ project(':lixbox-elasticSearch'){
         
         
         //elastic search
-    	implementation group: 'co.elastic.clients', name: 'elasticsearch-java', version: '8.16.1'
+    	implementation group: 'co.elastic.clients', name: 'elasticsearch-java', version: '8.17.0'
 
 
         // ================================ Test ================================

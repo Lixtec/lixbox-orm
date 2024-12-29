@@ -31,6 +31,7 @@ package fr.lixbox.orm.es.model;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -62,7 +63,9 @@ public class DataflowContainer extends DataflowInfo
     }
     
     
-    
+
+    @JsonIgnore
+    @XmlTransient
     public String getBody()
     {
         return new String(Base64.getDecoder().decode(b64Body.getBytes(StandardCharsets.UTF_8)),StandardCharsets.UTF_8) ;
@@ -104,10 +107,43 @@ public class DataflowContainer extends DataflowInfo
     
     
     @JsonIgnore
+    @XmlTransient
     @Override
     public Map<String, Object> getIndexFieldValues()
     {
         Map<String, Object> indexFields = super.getIndexFieldValues();
         return indexFields;
     }
+    
+    
+    
+	@Override
+	public int hashCode() 
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + Objects.hash(b64Body);
+		return result;
+	}
+	
+	
+	
+	@Override
+	public boolean equals(Object obj) 
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!super.equals(obj))
+		{
+			return false;
+		}
+		if (!(obj instanceof DataflowContainer))
+		{
+			return false;
+		}
+		DataflowContainer other = (DataflowContainer) obj;
+		return Objects.equals(b64Body, other.b64Body);
+	} 
 }
