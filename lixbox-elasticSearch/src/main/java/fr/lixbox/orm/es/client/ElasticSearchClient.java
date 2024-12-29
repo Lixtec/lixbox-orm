@@ -61,10 +61,11 @@ import fr.lixbox.orm.entity.model.NoSqlSearchDao;
  */
 public class ElasticSearchClient implements Serializable
 {    
-    // ----------- Attibuts -----------
+	// ----------- Attibuts -----------
     private static final long serialVersionUID = 202410181620L;
     private static final Log LOG = LogFactory.getLog(ElasticSearchClient.class);
-    static final String SERVICE_CODE = "ESCLI";
+    private static final String SERVICE_CODE = "ESCLI";
+    private static final String MSG_FERMETURE_DU_CLIENT_EN_COURS = "Fermeture du client en cours : ";
     
     String elasticSearchHost;
     int elasticSearchPort;
@@ -119,7 +120,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.debug("Fermeture du client en cours : "+client.toString());
+            LOG.debug(MSG_FERMETURE_DU_CLIENT_EN_COURS+client.toString());
             client._transport().close();
         }
         return object;
@@ -169,7 +170,7 @@ public class ElasticSearchClient implements Serializable
 			if (!deleteResponse.result().jsonValue().equals("deleted"))
 			{
 				throw new ProcessusException("Failed to remove document "+id);
-			};
+			}
 		} 
 		catch (Exception e) 
 		{
@@ -215,7 +216,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.debug("Fermeture du client en cours : "+client.toString());
+            LOG.debug(MSG_FERMETURE_DU_CLIENT_EN_COURS+client.toString());
             client._transport().close();
         }
         return dao;
@@ -261,7 +262,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.debug("Fermeture du client en cours : "+client.toString());
+            LOG.debug(MSG_FERMETURE_DU_CLIENT_EN_COURS+client.toString());
             client._transport().close();
         }
         return daos;
@@ -283,7 +284,7 @@ public class ElasticSearchClient implements Serializable
                 .query(query)
                 .build();
     
-            SearchResponse<T> searchResponse = (SearchResponse<T>) client.search(searchRequest, entityClass);
+            SearchResponse<T> searchResponse = client.search(searchRequest, entityClass);
     
             List<Hit<T>> hits = searchResponse.hits().hits();
             LOG.debug("Réponse contient : "+searchResponse.hits().total());
@@ -298,7 +299,7 @@ public class ElasticSearchClient implements Serializable
         }
         finally
         {
-            LOG.debug("Fermeture du client en cours : "+client.toString());
+            LOG.debug(MSG_FERMETURE_DU_CLIENT_EN_COURS+client.toString());
             client._transport().close();
         }
         return daos;
